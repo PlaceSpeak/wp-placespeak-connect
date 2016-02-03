@@ -8,22 +8,21 @@ $state = htmlspecialchars($_GET["state"]);
 
 // The index number of this app is stuck onto the end of the state variable in a sneaky manner
 $index_position = strpos($state, '_');
-$app_index = substr(substr($state,$index_position),1);
+$app_id = substr(substr($state,$index_position),1);
 $old_url = substr($state,0,$index_position);
 
 // Get info from DB
-require_once('../../../wp-config.php');
+require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
 global $wpdb;
 $table_name = $wpdb->prefix . 'placespeak';
-$client_info = $wpdb->get_results("SELECT * FROM " . $table_name);
-$client_id = $client_info[$app_index]->client_key;
-$client_secret = $client_info[$app_index]->client_secret;
-$redirect_uri = $client_info[$app_index]->redirect_uri;
+$client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $app_id);
+$client_id = $client_info->client_key;
+$client_secret = $client_info->client_secret;
+$redirect_uri = $client_info->redirect_uri;
 
-// Get code from query string
-$code = $_GET["code"];
-$error = $_GET["error"];
-if(!$error) {
+
+if(isset($_GET["code"])){
+    $code = $_GET["code"];
     // Send authorization request
     $url = 'http://dev.placespeak.com/connect/token';
     $myvars = 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&redirect_uri=' . $redirect_uri . '&code=' . $code . '&grant_type=authorization_code';
@@ -66,7 +65,8 @@ if(!$error) {
           $verifications         = $response_json2->{'verifications'};
           $access_token          = $response_json->{'access_token'};
           $refresh_token         = $response_json->{'refresh_token'};
-          $authorized_client_key = $client_info[$app_index]->client_key;
+          $authorized_client_key = $client_info->client_key;
+          print_r($response_json2);
         
           $user_storage = get_option('placespeak_user_storage');
         

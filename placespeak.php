@@ -605,7 +605,7 @@ function placespeak_connect_field() {
 
         $table_name = $wpdb->prefix . 'placespeak';
 
-        $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE archived = 0");
+        $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
         
         $url = $_SERVER['REQUEST_URI'];
         $escaped_url = htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' );
@@ -614,12 +614,12 @@ function placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info[$current_app_id]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[$current_app_id]->redirect_uri ?>&state=<?php echo $escaped_url; ?>_<?php echo $current_app_id; ?>">
+                    <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                 </div>
             </div>
-            <input id="app_key" type="hidden" value="<?php echo $client_info[$current_app_id]->client_key ?>">
+            <input id="app_key" type="hidden" value="<?php echo $client_info->client_key ?>">
             <input id="url_directory" type="hidden" value="<?php echo plugin_dir_url(__FILE__) ?>">
             <div id="verified_by_placespeak" style="display:none;">
                 <p>Your comment is verified by PlaceSpeak.<img id="placespeak_verified_question" src="<?php echo plugin_dir_url(__FILE__); ?>/img/question.png"</p>
@@ -648,7 +648,10 @@ function select_placespeak_app() {
     $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE archived = 0");
     
     $post_id = $_GET['post'];
-    $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true)
+    $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true);
+    if($current_app_id){
+        $current_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
+    }
     ?>
     <!-- Spit out a metabox; this is NOT a real metabox really -->
     <div id="select_placespeak_app" class="postbox " style="margin-top:40px;">
@@ -656,14 +659,14 @@ function select_placespeak_app() {
         <h3 class="hndle ui-sortable-handle"><span>Select PlaceSpeak App</span></h3>
         <div class="inside">
             <?php if($current_app_id) { ?>
-                <p>Current App: <strong><?php echo $client_info[$current_app_id]->app_name; ?></strong></p>
+                <p>Current App: <strong><?php echo $$current_app->app_name; ?></strong></p>
             <?php } ?>
             <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
             <select name="placespeak_app_id" id="placespeak_app_id">
                 <option value="">(no app)</option>
                 <!-- Some fiddling here to make sure the options come out correctly -->
                 <?php for ($i=0;$i<count($client_info); ++$i) { ?>
-                    <option class="level-0" value="<?php echo $i; ?>" <?php if($i==$current_app_id) { echo "selected='selected'"; } ?>><?php echo $client_info[$i]->app_name; ?></option>
+                    <option class="level-0" value="<?php echo $client_info[$i]->id ?>" <?php if($client_info[$i]->id==$current_app_id) { echo "selected='selected'"; } ?>><?php echo $client_info[$i]->app_name; ?></option>
                 <?php } ?>
             </select>
         </div>

@@ -5,8 +5,8 @@ This page contains the logic to handle an AJAX call after a user has signed in.
 $user_id = htmlspecialchars($_GET["user_id"]);
 if($user_id) {
     // Get info from the selected DB
-    require_once('../../../wp-config.php');
-    $user_storage = get_option('placespeak_user_storage');
+    require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
+        $user_storage = get_option('placespeak_user_storage');
 
     if($user_storage == 'WP_USERS') {
       $user_name = $user_id . '_placespeak';
