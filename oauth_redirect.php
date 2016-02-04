@@ -3,6 +3,10 @@
 This page contains the logic to handle a redirect from PlaceSpeak OAUTH process.
 */
 
+// First, tell them things are working away
+?>
+<div style="text-align:center;margin-top:20px;font-size:30px;">LOADING . . .</div>
+<?php 
 // First, we get the path
 $state = htmlspecialchars($_GET["state"]);
 
@@ -18,7 +22,7 @@ $table_name = $wpdb->prefix . 'placespeak';
 $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $app_id);
 $client_id = $client_info->client_key;
 $client_secret = $client_info->client_secret;
-$redirect_uri = $client_info->redirect_uri;
+$redirect_uri = $client_info->redirect_uri . '/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php';
 
 
 if(isset($_GET["code"])){
@@ -66,7 +70,6 @@ if(isset($_GET["code"])){
           $access_token          = $response_json->{'access_token'};
           $refresh_token         = $response_json->{'refresh_token'};
           $authorized_client_key = $client_info->client_key;
-          print_r($response_json2);
         
           $user_storage = get_option('placespeak_user_storage');
         
@@ -80,6 +83,7 @@ if(isset($_GET["code"])){
                 // user exists - update fields
                 // If they do, then add access token, refresh token, and client key to end of the db value
                 // and update their settings in case there's been a change
+                $existing_geo_labels = explode("|", get_user_meta($wordpress_user_id,'placespeak_geo_labels', true));
                 $access_tokens = explode(",", get_user_meta($wordpress_user_id,'placespeak_access_token', true));
                 $refresh_tokens = explode(",", get_user_meta($wordpress_user_id,'placespeak_refresh_token', true));
                 $client_keys = explode(",", get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
@@ -90,20 +94,24 @@ if(isset($_GET["code"])){
                     if($single_client_key == $authorized_client_key) {
                         $this_key_exists = true;
                         // Replace its values with the new ones in all the arrays
+                        $existing_geo_labels[$key] = $geo_labels; // This is already made into a string
                         $access_tokens[$key] = $access_token;
                         $refresh_tokens[$key] = $refresh_token;
                     }
                 }
                 if($this_key_exists) {
+                    $new_geo_labels = implode("|", $existing_geo_labels);
                     $new_client_keys = get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true); // stays the same
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                 } else {
                     // Need to add this onto the end of the array, then implode it
                     // I could check if the array is only one long and not add the comma, but it works the same anyway
+                    array_push($existing_geo_labels,$geo_labels);
                     array_push($access_tokens,$access_token);
                     array_push($refresh_tokens,$refresh_token);
                     array_push($client_keys,$authorized_client_key);
+                    $new_geo_labels = implode("|",$existing_geo_labels);
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                     $new_client_keys = implode(",",$client_keys);
@@ -112,7 +120,7 @@ if(isset($_GET["code"])){
                 update_user_meta( $wordpress_user_id, 'placespeak_user_id', $user_id);
                 update_user_meta( $wordpress_user_id, 'placespeak_first_name', $first_name);
                 update_user_meta( $wordpress_user_id, 'placespeak_last_name', $last_name);
-                update_user_meta( $wordpress_user_id, 'placespeak_geo_labels', $geo_labels);
+                update_user_meta( $wordpress_user_id, 'placespeak_geo_labels', $new_geo_labels);
                 update_user_meta( $wordpress_user_id, 'placespeak_verifications', $verifications);
                 update_user_meta( $wordpress_user_id, 'placespeak_access_token', $new_access_tokens);
                 update_user_meta( $wordpress_user_id, 'placespeak_refresh_token', $new_refresh_tokens);
@@ -152,6 +160,7 @@ if(isset($_GET["code"])){
             if($client_info) {
                 // If they do, then add access token, refresh token, and client key to end of the db value
                 // and update their settings in case there's been a change
+                $existing_geo_labels = explode("|", $client_info['geo_labels']);
                 $access_tokens = explode(",", $client_info['access_token']);
                 $refresh_tokens = explode(",", $client_info['refresh_token']);
                 $client_keys = explode(",", $client_info['authorized_client_key']);
@@ -162,20 +171,24 @@ if(isset($_GET["code"])){
                     if($single_client_key == $authorized_client_key) {
                         $this_key_exists = true;
                         // Replace its values with the new ones in all the arrays
+                        $existing_geo_labels[$key] = $geo_labels; // This is already made into a string
                         $access_tokens[$key] = $access_token;
                         $refresh_tokens[$key] = $refresh_token;
                     }
                 }
                 if($this_key_exists) {
+                    $new_geo_labels = implode("|", $existing_geo_labels);
                     $new_client_keys = $client_info['authorized_client_key']; // stays the same
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                 } else {
                     // Need to add this onto the end of the array, then implode it
                     // I could check if the array is only one long and not add the comma, but it works the same anyway
+                    array_push($existing_geo_labels,$geo_labels);
                     array_push($access_tokens,$access_token);
                     array_push($refresh_tokens,$refresh_token);
                     array_push($client_keys,$authorized_client_key);
+                    $new_geo_labels = implode("|",$existing_geo_labels);
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                     $new_client_keys = implode(",",$client_keys);
@@ -187,7 +200,7 @@ if(isset($_GET["code"])){
                         'time' => current_time( 'mysql' ), 
                         'first_name' => $first_name, 
                         'last_name' => $last_name, 
-                        'geo_labels' => $geo_labels, 
+                        'geo_labels' => $new_geo_labels, 
                         'verifications' => $verifications, 
                         'access_token' => $new_access_tokens, 
                         'refresh_token' => $new_refresh_tokens, 
@@ -226,8 +239,9 @@ if(isset($_GET["code"])){
           }
             
           // Then, we send the user to the page they were on
+            //header('Refresh: 1; '. );
           $url =  "//{$_SERVER['HTTP_HOST']}";
-          header('Refresh: 1; '. $url . $old_url);
+          echo '<meta http-equiv="REFRESH" content="0; url=' . $url . $old_url . '">';
           exit();
             
         } else {

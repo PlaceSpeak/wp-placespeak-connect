@@ -12,16 +12,30 @@ jQuery.ajax({
     } else {
         // Do another AJAX call with what was returned for the user_id, this time to a plugin file that returns DB info
         jQuery.ajax({
-          url: plugin_directory + 'signed_in_ajax.php?user_id=' + data[0].user_id,
+          url: plugin_directory + 'signed_in_ajax.php?user_id=' + data[0].user_id + '&app_key='+app_key,
           dataType: 'jsonp',
         }).done(function(data) {
             if(data.error) {
                 console.log(data.error);
             } else {
-                // Autofill the form and add input fields
-                // ID is always "author" by default
+                // Autofill the form and add input fields (verification levels, geo_labels for this app, and user id)
+                // ID is always "author" by default in WP comment area
                 jQuery('#author').val(data.first_name + ' ' + data.last_name);
                 jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_verifications" value="'+data.verifications+'">');
+                jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_geo_labels" value="'+data.geo_labels+'">');
+                jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_user_id" value="'+data.user_id+'">');
+                // Add a little thing saying they are inside/outside consultation areas
+                if(data.geo_labels) {
+                    jQuery('#powered_by_placespeak').after('<div style="margin-top:10px;"><p>Your location is inside the consultation area(s) ('+data.geo_labels+').</p></div>');
+                } else {
+                    jQuery('#powered_by_placespeak').after('<div style="margin-top:10px;"><p>Your location is not inside the consultation area(s).</p></div>');
+                }
+                
+                // Pull user down to the input fields
+//                jQuery("body, html").animate({ 
+//                    scrollTop: jQuery('#author').offset().top 
+//                }, 600);
+                
             }
         });
         // Data returned consists of various green dots and so on
