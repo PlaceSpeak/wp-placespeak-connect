@@ -205,7 +205,7 @@ function my_plugin_options() {
                 <tr><td>App Name</td><td><input type="text" name="app-name" placeholder="App name"></td></tr>
                 <tr><td>App Key</td><td><input type="text" name="app-key" placeholder="App Key"></td></tr>
                 <tr><td>App Secret</td><td><input type="text" name="app-secret" placeholder="App Secret"></td></tr>
-                <tr><td>Redirect URI</td><td><input type="text" name="redirect-url" placeholder="Redirect URL"></td></tr>
+                <tr><td>Redirect URI</td><td><input type="text" name="redirect-url" placeholder="Redirect URL" value="<?php echo site_url(); ?>"> <small>This should be where your Wordpress is installed.</small></td></tr>
             </table>
             <input type="submit" name="add-new-app">
         </form>
@@ -534,7 +534,7 @@ function placespeak_connect_shortcode($atts) {
 <!--        <a onClick="openwindow('login')">Log In</a> | <a onClick="openwindow('signup')">Sign Up</a>-->
         <div id="placespeak_connect_button">
             <div style="margin-bottom:10px;">
-                <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
+                <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
                     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_<?php echo $shortcode_connect_atts['button']; ?>.png">
                 </a>
             </div>
@@ -614,7 +614,7 @@ function placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                    <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                 </div>
@@ -659,7 +659,7 @@ function select_placespeak_app() {
         <h3 class="hndle ui-sortable-handle"><span>Select PlaceSpeak App</span></h3>
         <div class="inside">
             <?php if($current_app_id) { ?>
-                <p>Current App: <strong><?php echo $$current_app->app_name; ?></strong></p>
+                <p>Current App: <strong><?php echo $current_app->app_name; ?></strong></p>
             <?php } ?>
             <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
             <select name="placespeak_app_id" id="placespeak_app_id">
@@ -685,8 +685,30 @@ add_action( 'comment_post', 'save_user_comment_information' );
 function save_user_comment_information($comment_id) {
     // If it has this input field, then it's been verified
     if($_POST['placespeak_verifications']) {
-        add_comment_meta( $comment_id, 'placespeak_verified_user', 'true' );
+        add_comment_meta( $comment_id, 'placespeak_verified_user', $_POST['placespeak_user_id'] );
         add_comment_meta( $comment_id, 'placespeak_user_verifications', $_POST['placespeak_verifications'] );
+        add_comment_meta( $comment_id, 'placespeak_geo_labels', $_POST['placespeak_geo_labels'] );
+            
+    }
+}
+// Adding a column to "comments" that shows whether comment is verified or not
+add_filter('manage_edit-comments_columns', 'add_new_comments_columns');
+function add_new_comments_columns($comments_columns) {
+    $comments_columns['placespeak_verified'] = 'PlaceSpeak Verified';
+    return $comments_columns;
+}
+// Populating that column
+add_action('manage_comments_custom_column','manage_comments_columns',10,2);
+function manage_comments_columns($column_name, $id) {
+    switch ($column_name) {
+        case 'placespeak_verified':
+            $user_id = get_comment_meta($id,'placespeak_verified_user',true);
+            if($user_id) {
+                echo '<img style="width:15px;" src="' . plugin_dir_url(__FILE__) . '/img/verified_checkbox.png"">';
+            }
+            break;
+        default:
+            break;
     }
 }
 
