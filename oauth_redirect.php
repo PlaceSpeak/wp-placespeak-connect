@@ -63,7 +63,6 @@ if(isset($_GET["code"])){
             
           // Just assigning strings to these vars, removing any other formatting
           $fixed_verifications = str_replace('True','"True"',str_replace('False','"False"',str_replace("'",'"',$response_json2->{'verifications'})));
-          echo $fixed_verifications;
           $user_id               = $response_json2->{'id'};
           $first_name            = $response_json2->{'first_name'};
           $last_name             = $response_json2->{'last_name'};
