@@ -21,7 +21,8 @@ jQuery.ajax({
                 // Autofill the form and add input fields (verification levels, geo_labels for this app, and user id)
                 // ID is always "author" by default in WP comment area
                 jQuery('#author').val(data.first_name + ' ' + data.last_name);
-                jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_verifications" value="'+data.verifications+'">');
+                jQuery('#placespeak_connect_button').after("<input type='hidden' name='placespeak_verifications' value='"+data.verifications+"'>");
+                jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_user_name" value="'+data.first_name+' '+data.last_name+'">');
                 jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_geo_labels" value="'+data.geo_labels+'">');
                 jQuery('#placespeak_connect_button').after('<input type="hidden" name="placespeak_user_id" value="'+data.user_id+'">');
                 // Add a little thing saying they are inside/outside consultation areas
