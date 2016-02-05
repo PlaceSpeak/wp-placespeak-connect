@@ -5,7 +5,7 @@ This page contains the logic to handle a redirect from PlaceSpeak OAUTH process.
 
 // First, tell them things are working away
 ?>
-<div style="text-align:center;margin-top:20px;font-size:30px;">LOADING . . .</div>
+<div style="text-align:center;margin-top:20px;font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:30px;">Redirecting you back to the application. This may take a few moments.</div>
 <?php 
 // First, we get the path
 $state = htmlspecialchars($_GET["state"]);
