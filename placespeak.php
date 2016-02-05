@@ -686,6 +686,7 @@ function save_user_comment_information($comment_id) {
     // If it has this input field, then it's been verified
     if($_POST['placespeak_verifications']) {
         add_comment_meta( $comment_id, 'placespeak_verified_user', $_POST['placespeak_user_id'] );
+        add_comment_meta( $comment_id, 'placespeak_user_name', $_POST['placespeak_user_name'] );
         add_comment_meta( $comment_id, 'placespeak_user_verifications', $_POST['placespeak_verifications'] );
         add_comment_meta( $comment_id, 'placespeak_geo_labels', $_POST['placespeak_geo_labels'] );
             
@@ -695,6 +696,8 @@ function save_user_comment_information($comment_id) {
 add_filter('manage_edit-comments_columns', 'add_new_comments_columns');
 function add_new_comments_columns($comments_columns) {
     $comments_columns['placespeak_verified'] = 'PlaceSpeak Verified';
+    $comments_columns['placespeak_user_name'] = 'PlaceSpeak User Name';
+    $comments_columns['placespeak_region'] = 'PlaceSpeak App Region';
     return $comments_columns;
 }
 // Populating that column
@@ -703,8 +706,32 @@ function manage_comments_columns($column_name, $id) {
     switch ($column_name) {
         case 'placespeak_verified':
             $user_id = get_comment_meta($id,'placespeak_verified_user',true);
+            $verifications = get_comment_meta($id,'placespeak_user_verifications',true);
+            $json_verifications = json_decode($verifications);
             if($user_id) {
-                echo '<img style="width:15px;" src="' . plugin_dir_url(__FILE__) . '/img/verified_checkbox.png"">';
+                foreach($json_verifications as $key=>$verification_level) {
+                    if($verification_level == 'True') {
+                        echo ucfirst($key) . ': <img style="width:15px;" src="' . plugin_dir_url(__FILE__) . '/img/verified_checkbox.png""><br>';
+                    } else {
+                        echo ucfirst($key) . ': Not verified<br>';
+                    }
+                }
+            }
+            break;
+        case 'placespeak_user_name':
+            $user_name = get_comment_meta($id,'placespeak_user_name',true);
+            if($user_name) {
+                echo $user_name;
+            }
+            break;
+        case 'placespeak_region':
+            $user_geo_labels = get_comment_meta($id,'placespeak_geo_labels',true);
+            if($user_geo_labels) {
+                echo $user_geo_labels;
+            } else {
+                if(get_comment_meta($id,'placespeak_verified_user',true)) {
+                    echo "User is not in this app's regions.";
+                }
             }
             break;
         default:

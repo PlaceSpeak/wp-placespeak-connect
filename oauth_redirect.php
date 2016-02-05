@@ -62,11 +62,12 @@ if(isset($_GET["code"])){
           $response_json2 = json_decode($response2);
             
           // Just assigning strings to these vars, removing any other formatting
+          $fixed_verifications = str_replace('True','"True"',str_replace('False','"False"',str_replace("'",'"',$response_json2->{'verifications'})));
           $user_id               = $response_json2->{'id'};
           $first_name            = $response_json2->{'first_name'};
           $last_name             = $response_json2->{'last_name'};
           $geo_labels            = implode(",",$response_json2->{'geo_labels'});
-          $verifications         = $response_json2->{'verifications'};
+          $verifications         = $fixed_verifications;
           $access_token          = $response_json->{'access_token'};
           $refresh_token         = $response_json->{'refresh_token'};
           $authorized_client_key = $client_info->client_key;
