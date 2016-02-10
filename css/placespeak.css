@@ -11,6 +11,10 @@
     height:20px;
     width:100%;
 }
+#pre_verified_by_placespeak {
+    height:20px;
+    display: inline;
+}
 #verified_by_placespeak p {
     color: #FFF;
     font-size:12px;
@@ -22,6 +26,14 @@
     margin-left:5px;
     margin-top: -2px;
 }
+#pre_verified_by_placespeak img {
+    width: 14px;
+    margin-left:0px;
+    margin-top: -15px;
+}
+#pre_verified_by_placespeak img:hover {
+    cursor: pointer;
+}
 #placespeak_verified_info {
     background:white;
     padding:5px 10px;
@@ -29,6 +41,15 @@
     position: absolute;
     margin-top:5px;
     margin-left:10px;
+}
+#placespeak_pre_verified_info {
+    background:white;
+    padding:5px 10px;
+    z-index: 10;
+    position: absolute;
+    margin-top:5px;
+    margin-left:10px;
+    border: thin black solid;
 }
 /* #placespeak_verified_info_triangle {
     width: 10px;

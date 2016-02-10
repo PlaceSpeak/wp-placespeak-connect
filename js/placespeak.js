@@ -9,6 +9,12 @@ jQuery.ajax({
     if(data.error) {
         // If error, such as not being logged in
         console.log(data.error);
+        jQuery('#pre_verified_by_placespeak').show();
+        // This is for (?) that appears beside Connect button
+        jQuery('#placespeak_pre_verified_info').width(jQuery('#placespeak_connect_button').width()-40);
+        jQuery('#placespeak_pre_verified_question').hover(function() {
+            jQuery('#placespeak_pre_verified_info').fadeToggle();
+        });
     } else {
         // Do another AJAX call with what was returned for the user_id, this time to a plugin file that returns DB info
         jQuery.ajax({
@@ -43,6 +49,7 @@ jQuery.ajax({
         jQuery('#placespeak_plugin_map').show();
         jQuery('#powered_by_placespeak').show();
         jQuery('#verified_by_placespeak').show();
+        // This 
         jQuery('#placespeak_verified_info').width(jQuery('#placespeak_plugin_map').width()-40);
         jQuery('#placespeak_verified_question').hover(function() {
             jQuery('#placespeak_verified_info').fadeToggle();
