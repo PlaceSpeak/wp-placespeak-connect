@@ -594,8 +594,9 @@ add_filter('widget_text', 'do_shortcode');
 // I could do this with an option check to add to all posts
 // or allow it to be added to posts individually
 
-// Note: this only works if you're using a theme with the hooks in the right places in the comments. This isn't all themes_api
-add_action( 'comment_form_after_fields', 'placespeak_connect_field',10 );
+// Note: this only works if you're using a theme with the hooks in the right places in the comments. This isn't all themes
+add_action( 'comment_form_after_fields', 'placespeak_connect_field', 20 );
+add_action( 'comment_form_logged_in_after', 'placespeak_connect_field', 20 );
 function placespeak_connect_field() {
     // Gets placespeak_app_id out of the settings, if it's set
     $current_app_id = get_post_meta( get_the_ID(), 'placespeak_app_id', true);
@@ -617,6 +618,12 @@ function placespeak_connect_field() {
                     <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
+                    <div id="pre_verified_by_placespeak" style="display:none;">
+                        <img id="placespeak_pre_verified_question" src="<?php echo plugin_dir_url(__FILE__); ?>/img/question-grey.png">
+                        <div id="placespeak_pre_verified_info" style="display:none;">
+                            If you connect to this consultation using PlaceSpeak, PlaceSpeak will verify that your comment isn't spam and confirm your status as a resident (or not) of the consultation area. PlaceSpeak will not share your address.
+                        </div>
+                    </div>
                 </div>
             </div>
             <input id="app_key" type="hidden" value="<?php echo $client_info->client_key ?>">
@@ -624,7 +631,7 @@ function placespeak_connect_field() {
             <div id="verified_by_placespeak" style="display:none;">
                 <p>Your comment is verified by PlaceSpeak.<img id="placespeak_verified_question" src="<?php echo plugin_dir_url(__FILE__); ?>/img/question.png"</p>
                 <div id="placespeak_verified_info" style="display:none;">
-                    Because you have connected to this consultation using PlaceSpeak, PlaceSpeak will verify that your comment isn't spam and confirm your status as a resident (or not) of the consultation area. PlaceSpeak will not share any personal information, such as your address.
+                    Because you have connected to this consultation using PlaceSpeak, PlaceSpeak will verify that your comment isn't spam and confirm your status as a resident (or not) of the consultation area. PlaceSpeak will not share your address.
                 </div>
             </div>
             <div id="placespeak_plugin_map" style="display:none;"></div>
