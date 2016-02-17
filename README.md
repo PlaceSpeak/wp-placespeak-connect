@@ -11,7 +11,8 @@
 <h4>Bugs and fixes</h4>
 <ul>
     <li>Do we need shortcode? Having it means that wp-placespeak-connect scripts and styles are loaded on every page (just in case they use it)</li>
-    <li>Need to change dev.placespeak.com to placespeak.com</li>
+    <li>Update apps to use https://placespeak.com</li>
+    <li>Is user login check returning the user_id from https://placespeak.com?</li>
 </ul>
 <h4>Coming Soon</h4>
 <ul>
