@@ -42,7 +42,7 @@ $redirect_uri = $client_info->redirect_uri . '/wp-content/plugins/wp-placespeak-
  */
 if(isset($_GET["code"])){
     $code = $_GET["code"];
-    $url = 'http://dev.placespeak.com/connect/token';
+    $url = 'https://placespeak.com/connect/token';
     $myvars = 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&redirect_uri=' . $redirect_uri . '&code=' . $code . '&grant_type=authorization_code';
     
     $ch = curl_init( $url );
@@ -66,7 +66,7 @@ if(isset($_GET["code"])){
         $header = array();
         $header[] = 'AUTHORIZATION: Bearer ' . $response_json->{'access_token'};
         $ch2 = curl_init();
-        curl_setopt( $ch2, CURLOPT_URL, 'http://dev.placespeak.com/connect/api/user_info/');
+        curl_setopt( $ch2, CURLOPT_URL, 'https://placespeak.com/connect/api/user_info/');
         curl_setopt( $ch2, CURLOPT_HTTPHEADER, $header);
         curl_setopt( $ch2, CURLOPT_RETURNTRANSFER, 1);
         $response2 = curl_exec( $ch2 );

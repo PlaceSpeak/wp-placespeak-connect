@@ -570,28 +570,37 @@ function select_placespeak_app() {
     
     $post_id = $_GET['post'];
     $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true);
-    if($current_app_id){
+    if($current_app_id) {
         $current_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
     }
-    ?>
-    <!-- Spit out a metabox; this is NOT a real metabox really -->
-    <div id="select_placespeak_app" class="postbox " style="margin-top:40px;">
-        <div class="handlediv" title="Click to toggle"><br></div>
-        <h3 class="hndle ui-sortable-handle"><span>Select PlaceSpeak App</span></h3>
-        <div class="inside">
-            <?php if($current_app_id) { ?>
-                <p>Current App: <strong><?php echo $current_app->app_name; ?></strong></p>
+    function my_callback($post,$metabox) {
+        if($metabox['args']['current_app_id']) { ?>
+            <p>Current App: <strong><?php echo $metabox['args']['current_app']->app_name; ?></strong></p>
+        <?php } ?>
+        <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
+        <select name="placespeak_app_id" id="placespeak_app_id">
+            <option value="">(no app)</option>
+            <!-- Some fiddling here to make sure the options come out correctly -->
+            <?php for ($i=0;$i<count($metabox['args']['client_info']); ++$i) { ?>
+                <option class="level-0" value="<?php echo $metabox['args']['client_info'][$i]->id ?>" <?php if($metabox['args']['client_info'][$i]->id==$metabox['args']['current_app_id']) { echo "selected='selected'"; } ?>><?php echo $metabox['args']['client_info'][$i]->app_name; ?></option>
             <?php } ?>
-            <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
-            <select name="placespeak_app_id" id="placespeak_app_id">
-                <option value="">(no app)</option>
-                <!-- Some fiddling here to make sure the options come out correctly -->
-                <?php for ($i=0;$i<count($client_info); ++$i) { ?>
-                    <option class="level-0" value="<?php echo $client_info[$i]->id ?>" <?php if($client_info[$i]->id==$current_app_id) { echo "selected='selected'"; } ?>><?php echo $client_info[$i]->app_name; ?></option>
-                <?php } ?>
-            </select>
-        </div>
-    </div>
+        </select>
+        <?php 
+    }
+    // Add meta box for posts and for pages
+    $post_types = array('post','page');
+    foreach($post_types as $post_type) {
+        add_meta_box( 
+            'select_placespeak_app', 
+            'Select PlaceSpeak App', 
+            'my_callback', 
+            $post_type, 
+            'side', 
+            'default',
+            array('current_app_id'=>$current_app_id, 'current_app'=>$current_app, 'client_info'=>$client_info )
+        );
+    }
+    ?>
 <?php 
 }
 
@@ -602,19 +611,19 @@ function select_placespeak_app() {
 
 /**
  * Enqueue scripts for the map display and custom JS when button appears
- * 
+ * This is loaded every time, in case they are using a shortcode
  */
 function placespeak_scripts() {
     wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'));
     wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('jquery','leaflet-js'));
-	wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
+    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
 
     wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . '/css/leaflet.css' );
-	wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . '/css/placespeak.css' );
-    
-	wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'),'0.7.7',false);
-	wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
-	wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
+    wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . '/css/placespeak.css' );
+
+    wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'),'0.7.7',false);
+    wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
+    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
 }
 
 add_action( 'wp_enqueue_scripts', 'placespeak_scripts' );
@@ -643,7 +652,7 @@ function placespeak_connect_shortcode($atts) {
     <div style="font-size:12px !important;">
         <div id="placespeak_connect_button">
             <div style="margin-bottom:10px;">
-                <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
+                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
                     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_<?php echo $shortcode_connect_atts['button']; ?>.png">
                 </a>
             </div>
@@ -693,7 +702,7 @@ function placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a onclick="return saveFormToLocalStorage();" href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                     <div id="pre_verified_by_placespeak" style="display:none;">
