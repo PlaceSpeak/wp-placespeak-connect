@@ -1,22 +1,34 @@
 <?php
 /**
-This page contains the logic to handle a redirect from PlaceSpeak OAUTH process.
-*/
+ * Takes care of handling the redirect from PlaceSpeak.
+ *
+ *
+ * @link       https://placespeak.com
+ * @since      1.0.0
+ *
+ * @package    wp-placespeak-connect
+ */
 
-// First, tell them things are working away
-?>
-<div style="text-align:center;margin-top:20px;font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:30px;">Redirecting you back to the application. This may take a few moments.</div>
-<?php 
-// First, we get the path
+/**
+ * First, get the path and app information from the query string
+ * The index number of the app is appended on the end of the state variable, needs to be parsed out
+ */
 $state = htmlspecialchars($_GET["state"]);
-
-// The index number of this app is stuck onto the end of the state variable in a sneaky manner
-$index_position = strpos($state, '_');
-$app_id = substr(substr($state,$index_position),1);
+$state = urldecode($state);
+$index_position = strrpos($state, '_', -1);
+$app_id = str_replace('_','',strrchr($state,'_'));
 $old_url = substr($state,0,$index_position);
 
-// Get info from DB
+/**
+ * Load WP functions
+ * 
+ */
 require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
+
+/**
+ * Get relevant app information out of DB
+ * 
+ */
 global $wpdb;
 $table_name = $wpdb->prefix . 'placespeak';
 $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $app_id);
@@ -24,10 +36,12 @@ $client_id = $client_info->client_key;
 $client_secret = $client_info->client_secret;
 $redirect_uri = $client_info->redirect_uri . '/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php';
 
-
+/**
+ * If request has returned a code, then send the authorization request with cURL
+ * 
+ */
 if(isset($_GET["code"])){
     $code = $_GET["code"];
-    // Send authorization request
     $url = 'http://dev.placespeak.com/connect/token';
     $myvars = 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&redirect_uri=' . $redirect_uri . '&code=' . $code . '&grant_type=authorization_code';
     
@@ -42,11 +56,13 @@ if(isset($_GET["code"])){
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     
-      // Check if it returned without an error
       if($httpcode==200) { 
         $response_json = json_decode($response);
     
-        // Then, we send a GET, and get user information to put into the DB
+        /**
+         * If first auth request is successful, then do another with the access_token
+         * After success, put information into appropriate DB depending on what user has selected in Options page
+         */
         $header = array();
         $header[] = 'AUTHORIZATION: Bearer ' . $response_json->{'access_token'};
         $ch2 = curl_init();
@@ -57,11 +73,13 @@ if(isset($_GET["code"])){
         $httpcode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
         curl_close($ch2);
         
-        // If this request succeeded then assign variables and put into DB
         if($httpcode2==200) { 
           $response_json2 = json_decode($response2);
             
-          // Just assigning strings to these vars, removing any other formatting
+        /**
+         * Removing any extra formatting (arrays, etc) to get information into DB in consistent manner
+         * 
+         */
           $fixed_verifications = str_replace('True','"True"',str_replace('False','"False"',str_replace("'",'"',$response_json2->{'verifications'})));
           $user_id               = $response_json2->{'id'};
           $first_name            = $response_json2->{'first_name'};
@@ -74,22 +92,21 @@ if(isset($_GET["code"])){
         
           $user_storage = get_option('placespeak_user_storage');
         
-          // Create user in the WP_USERS table
+        /**
+         * If they have selected WP_USERS, then store as Wordpress users
+         * 
+         */
           if($user_storage == 'WP_USERS') {
-              // Their username is their user_id with 'placespeak' attached (wanted more unique info, but can't use more)
-              // Then all that other data is stored as metadata along with them
               $user_name = $user_id . '_placespeak';
               $wordpress_user_id = username_exists( $user_name );
               if ( $wordpress_user_id == true ) {
-                // user exists - update fields
-                // If they do, then add access token, refresh token, and client key to end of the db value
-                // and update their settings in case there's been a change
+                // User exists - update fields
                 $existing_geo_labels = explode("|", get_user_meta($wordpress_user_id,'placespeak_geo_labels', true));
                 $access_tokens = explode(",", get_user_meta($wordpress_user_id,'placespeak_access_token', true));
                 $refresh_tokens = explode(",", get_user_meta($wordpress_user_id,'placespeak_refresh_token', true));
                 $client_keys = explode(",", get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
                 $this_key_exists = false;
-                // This could be a switch statement instead
+                  
                 foreach($client_keys as $key=>$single_client_key) {
                     // Check if this client key exists and what index it's at
                     if($single_client_key == $authorized_client_key) {
@@ -106,8 +123,6 @@ if(isset($_GET["code"])){
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                 } else {
-                    // Need to add this onto the end of the array, then implode it
-                    // I could check if the array is only one long and not add the comma, but it works the same anyway
                     array_push($existing_geo_labels,$geo_labels);
                     array_push($access_tokens,$access_token);
                     array_push($refresh_tokens,$refresh_token);
@@ -126,8 +141,21 @@ if(isset($_GET["code"])){
                 update_user_meta( $wordpress_user_id, 'placespeak_access_token', $new_access_tokens);
                 update_user_meta( $wordpress_user_id, 'placespeak_refresh_token', $new_refresh_tokens);
                 update_user_meta( $wordpress_user_id, 'placespeak_authorized_client_key', $new_client_keys);
+                  
+                /**
+                 * Sign in to WP after authenticating app
+                 * 
+                 */
+                /*
+                $single_sign_on = get_option('placespeak_single_sign_on');
+                if($single_sign_on!=='') {
+                    $wordpress_user = get_user_by( 'id', $wordpress_user_id );
+                    wp_set_current_user( $wordpress_user_id, $wordpress_user->user_login );
+                    wp_set_auth_cookie( $wordpress_user_id );
+                    do_action( 'wp_login', $wordpress_user->user_login );
+                } */
               } else {
-                // Create user with meta fields
+                // User does not exist, create new user with meta information
                 $random_password = wp_generate_password( $length=12, $include_standard_special_chars=false );
                 $userdata = array(
                     'user_login'  =>  $user_name,
@@ -147,26 +175,39 @@ if(isset($_GET["code"])){
                 add_user_meta( $wordpress_user_id, 'placespeak_access_token', $access_token);
                 add_user_meta( $wordpress_user_id, 'placespeak_refresh_token', $refresh_token);
                 add_user_meta( $wordpress_user_id, 'placespeak_authorized_client_key', $authorized_client_key);
+                  
+                /**
+                 * Sign in to WP after authenticating app
+                 * 
+                 */
+                /*
+                $single_sign_on = get_option('placespeak_single_sign_on');
+                if($single_sign_on!=='') {
+                    $wordpress_user = get_user_by( 'id', $wordpress_user_id );
+                    wp_set_current_user( $wordpress_user_id, $wordpress_user->user_login );
+                    wp_set_auth_cookie( $wordpress_user_id );
+                    do_action( 'wp_login', $wordpress_user->user_login );
+                } */
               }
           }
             
-          // OR, put into a special PlaceSpeak table (depending on selected option)
+        /**
+         * If they have selected placespeak_users, then store in that table (no login option available)
+         * 
+         */
           if($user_storage == 'PS_USERS') {
             global $wpdb;
 
             $table_name = $wpdb->prefix . 'placespeak_users';
               
-            // First check if user exists
             $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE user_id = " . $user_id);
             if($client_info) {
-                // If they do, then add access token, refresh token, and client key to end of the db value
-                // and update their settings in case there's been a change
+                // User exists - update fields
                 $existing_geo_labels = explode("|", $client_info['geo_labels']);
                 $access_tokens = explode(",", $client_info['access_token']);
                 $refresh_tokens = explode(",", $client_info['refresh_token']);
                 $client_keys = explode(",", $client_info['authorized_client_key']);
                 $this_key_exists = false;
-                // This could be a switch statement instead
                 foreach($client_keys as $key=>$single_client_key) {
                     // Check if this client key exists and what index it's at
                     if($single_client_key == $authorized_client_key) {
@@ -183,8 +224,6 @@ if(isset($_GET["code"])){
                     $new_access_tokens = implode(",",$access_tokens);
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                 } else {
-                    // Need to add this onto the end of the array, then implode it
-                    // I could check if the array is only one long and not add the comma, but it works the same anyway
                     array_push($existing_geo_labels,$geo_labels);
                     array_push($access_tokens,$access_token);
                     array_push($refresh_tokens,$refresh_token);
@@ -221,7 +260,7 @@ if(isset($_GET["code"])){
                     array( '%d' )
                 );
             } else {
-                // Add them with all current information
+                // If no user exists, create new one
                 $wpdb->insert( 
                     $table_name, 
                     array( 
@@ -239,25 +278,40 @@ if(isset($_GET["code"])){
             }
           }
             
-          // Then, we send the user to the page they were on
-            //header('Refresh: 1; '. );
+        /**
+         * After user stuff, send them back to whatever page the state variable tells us
+         * 
+         */
           $url =  "//{$_SERVER['HTTP_HOST']}";
           echo '<meta http-equiv="REFRESH" content="0; url=' . $url . $old_url . '">';
           exit();
             
         } else {
+        /**
+         * If an error occurs on the second authorization request
+         * 
+         */
           $response_json2 = json_decode($response2);
           echo 'Second request did not come back correctly.<br>';
           echo 'Error: ' . $response_json2->{'error'};
           echo '<br>Error Description: ' . $response_json2->{'error_description'};
         }
       } else {
+          
+        /**
+         * If an error occurs on the first authorization request
+         * 
+         */
           $response_json = json_decode($response);
           echo 'First request did not come back correctly.<br>';
           echo 'Error: ' . $response_json->{'error'};
           echo '<br>Error Description: ' . $response_json->{'error_description'};
       }
 } else {
+    /**
+     * If there is an error with the query strings
+     * 
+     */
       echo 'Initial query strings have an error.<br>';
       echo 'Error: ' . $_GET["error"];
       echo '<br>Error Description: ' . $_GET["error_description"];
