@@ -839,7 +839,7 @@ function add_placespeak_single_sign_on() {
         
         ?>
         <p style="text-align:center;">
-            <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $single_sign_on_app->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $single_sign_on_app->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $single_sign_on_app->id; ?>">
+            <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $single_sign_on_app->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $single_sign_on_app->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $single_sign_on_app->id; ?>">
                 <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
             </a>    
         </p>
