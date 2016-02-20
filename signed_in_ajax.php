@@ -1,19 +1,41 @@
 <?php
 /**
-This page contains the logic to handle an AJAX call after a user has signed in.
-*/
+ * Takes care of handling the AJAX calls for appending hidden fields in comment_form, after authorization has occurred
+ *
+ *
+ * @link       https://placespeak.com
+ * @since      1.0.0
+ *
+ * @package    wp-placespeak-connect
+ */
+
+/**
+ * First, get the user_id and the app_key from the query string
+ * 
+ */
 $user_id = htmlspecialchars($_GET["user_id"]);
 $app_key = htmlspecialchars($_GET["app_key"]);
-if($user_id) {
-    // Get info from the selected DB
-    require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
-        $user_storage = get_option('placespeak_user_storage');
 
+/**
+ * If user_id exists, then 
+ * The index number of the app is appended on the end of the state variable, needs to be parsed out
+ */
+if($user_id) {
+    /**
+     * Load WP functions
+     *
+     */
+    require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
+    /**
+     * Depending on user storage option, get user information out of DB
+     * Returned to JS as jsonp
+     */
+    $user_storage = get_option('placespeak_user_storage');
     if($user_storage == 'WP_USERS') {
       $user_name = $user_id . '_placespeak';
       $wordpress_user_id = username_exists( $user_name );
       if($wordpress_user_id) {
-        // Then check to see which index number this app is for this user, and get specific geo_labels (stored in DB as arrays separated by vertical bars)
+        // Check to see which index number this app is for this user, and get specific geo_labels (stored in DB as arrays separated by vertical bars)
         $authorized_client_keys = explode(',',get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
         $geo_labels = explode('|',get_user_meta($wordpress_user_id,'placespeak_geo_labels', true));
         $these_geo_labels = '';
@@ -31,18 +53,21 @@ if($user_id) {
         );
         echo $_GET['callback'] . '('.json_encode($data).')';
       } else {
+        /**
+         * If user doesn't exist
+         *
+         */
         $data = array(
             'error'=>'This user does not appear to be in the users table.'
         );
       }
     }
-    
     if($user_storage == 'PS_USERS') {
         global $wpdb;
         $table_name = $wpdb->prefix . 'placespeak_users';
         $user_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE user_id = " . $user_id);
         if($user_info) {
-            // Then check to see which index number this app is for this user, and get specific geo_labels (stored in DB as arrays separated by vertical bars)
+            // Check to see which index number this app is for this user, and get specific geo_labels (stored in DB as arrays separated by vertical bars)
             $authorized_client_keys = explode(',',get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
             $geo_labels = explode('|',get_user_meta($wordpress_user_id,'placespeak_geo_labels', true));
             $these_geo_labels = '';
@@ -60,6 +85,11 @@ if($user_id) {
             );
             echo $_GET['callback'] . '('.json_encode($data).')';
         } else {
+            
+            /**
+             * If user doesn't exist
+             *
+             */
             $data = array(
                 'error'=>'This user does not appear to be in the placespeak_users table.'
             );

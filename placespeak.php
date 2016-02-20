@@ -1,32 +1,49 @@
 <?php
 /**
- * @package PlaceSpeak
- * @version 1.0
+ * The plugin bootstrap file
+ *
+ * This file is read by WordPress to generate the plugin information in the plugin
+ * admin area. This file also includes all of the dependencies used by the plugin,
+ * registers the activation and deactivation functions, and defines a function
+ * that starts the plugin.
+ *
+ * @link              https://placespeak.com
+ * @since             0.0.1
+ * @package           wp-placespeak-connect
+ *
+ * @wordpress-plugin
+ * Plugin Name:       WP PlaceSpeak Connect
+ * Plugin URI:        https://placespeak.com
+ * Description:       This plugin allows organizations with PlaceSpeak Connect accounts on Placespeak.com to use geoverification tools on their Wordpress pages.
+ * Version:           1.0.0
+ * Author:            PlaceSpeak
+ * Author URI:        https://placespeak.com
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       wp-placespeak-connect
  */
-/*
-Plugin Name: PlaceSpeak
-Plugin URI: http://wordpress.org/plugins/placespeak/
-Description: This plugin allows organizations with PlaceSpeak Connect accounts on Placespeak.com to use geoverification tools on their Wordpress pages.
-Author: Victor Temprano / PlaceSpeak
-Version: 1.0
-Author URI: http://tempranova.com
+
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
+/**
+ * INSTALLATION AND OPTIONS PAGE
+ * 
 */
 
-/*
-
-This plugin creates a new table on install. This table contains app identifiers and other information.
-
-*/
-
-/** SETTING DATABASE TABLES */
+/**
+ * First, create a new table on install to store app information
+ * $placespeak_db_version can be used if DB ever needs to be updated
+ */
 global $placespeak_db_version;
-$placespeak_db_version = '1.3';
+$placespeak_db_version = '1.0';
 
 function placespeak_install() {
 	global $wpdb;
 	global $placespeak_db_version;
 
-    // Create table for holding apps and app information
 	$table_name = $wpdb->prefix . 'placespeak';
 	
 	$charset_collate = $wpdb->get_charset_collate();
@@ -50,7 +67,10 @@ function placespeak_install() {
     // Default user WP_USERS for user storage
     add_option( 'placespeak_user_storage', 'WP_USERS');
 }
-/* Initial data install */
+/**
+ * Install initial data of sample app
+ * 
+ */
 function placespeak_install_data() {
 	global $wpdb;
     
@@ -81,7 +101,10 @@ function placespeak_install_data() {
 register_activation_hook( __FILE__, 'placespeak_install' );
 register_activation_hook( __FILE__, 'placespeak_install_data' );
 
-// This is for the radio button on the settings page, that allows choice on how to store users
+/**
+ * Radio button in settings that allows user to choose storage of users
+ * 
+ */
 function choose_placespeak_user_table() {
 	if ( isset( $_POST['choose-placespeak-user-table'] ) ) {
        $user_storage = $_POST['user_storage'];
@@ -119,12 +142,38 @@ function choose_placespeak_user_table() {
 }
 choose_placespeak_user_table();
 
-/** ADDING MENU ITEM to WP */
+/**
+ * Checkbox for turning single sign-on on and off. Disabled for now.
+ * 
+ */
+/*
+function choose_placespeak_single_sign_on() {
+	if ( isset( $_POST['single-sign-on'] ) ) {
+       $single_sign_on = $_POST['single_sign_on_checkbox'];
+        
+       if($single_sign_on == 'single_sign_on') {
+           // Here, would save app ID
+           update_option('placespeak_single_sign_on', '1');
+       } else {
+           delete_option('placespeak_single_sign_on');
+       }
+    }
+}
+choose_placespeak_single_sign_on();
+*/
+
+/**
+ * Adding PlaceSpeak item to Settings in wp-admin
+ * 
+ */
 add_action( 'admin_menu', 'my_plugin_menu' );
 function my_plugin_menu() {
 	add_options_page( 'PlaceSpeak Options', 'PlaceSpeak', 'manage_options', 'placespeak', 'my_plugin_options' );
 }
-/* Adding administration page */
+/**
+ * PlaceSpeak Options page
+ * Has table storage options, ability to add a new app, and listing of apps with ability to edit them and archive
+ */
 function my_plugin_options() {
     
 	if ( !current_user_can( 'manage_options' ) )  {
@@ -161,6 +210,8 @@ function my_plugin_options() {
     
     // Seeing which option the user currently has set for saving user
     $user_storage = get_option('placespeak_user_storage');
+    // Seeing if user allows single sign on
+    $single_sign_on = get_option('placespeak_single_sign_on');
     ?>
 
     <style>
@@ -192,6 +243,7 @@ function my_plugin_options() {
     
 	<div class="wrap">
         <h3>Options</h3>
+        <p><strong>User Storage</strong></p>
         <form action="" method="post">
             <input type="radio" name="user_storage" <?php if($user_storage == 'WP_USERS') echo "checked"; ?> value="WP_USERS" />Use default WP_USERS to store verified user information (<strong>default</strong>).
             <br>
@@ -199,6 +251,13 @@ function my_plugin_options() {
             <br>
             <input type="submit" name="choose-placespeak-user-table" value="Save">
         </form>
+        <!-- Single sign on disabled -->
+        <!-- <p><strong>Single Sign On</strong></p>
+        <form action="" method="post">
+            <input type="checkbox" name="single_sign_on_checkbox" <?php if($single_sign_on!=='') echo "checked"; ?> value="single_sign_on" /> PlaceSpeak users can sign into Wordpress using their PlaceSpeak login.
+            <br>
+            <input type="submit" name="single-sign-on" value="Save">
+        </form> -->
         <h3>Add New PlaceSpeak App</h3>
         <form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ) ?>" method="post">
             <table>
@@ -332,8 +391,8 @@ function my_plugin_options() {
 	</div>
 
 <script>
+    // This script ensures that Edit buttons work correctly and correspond to the right app
     var idArray = [];
-    
     // Create functions for each edit box
     var editButtons = document.getElementsByClassName('editinline');
     for(button in editButtons) {
@@ -359,6 +418,15 @@ function my_plugin_options() {
 </script>
 <?php }
 
+/**
+ * APP OPERATIONS
+ * Adding, updating, archiving
+*/
+
+/**
+ * Adding a new app to DB from PlaceSpeak Options page
+ * 
+ */
 function add_new_app() {
 
 	// if the submit button is clicked, send the email
@@ -387,10 +455,12 @@ function add_new_app() {
 }
 add_new_app();
 
-/** Handling the form submission */
+/**
+ * Updating an app from PlaceSpeak Options page
+ * 
+ */
 function update_app() {
 
-	// if the submit button is clicked, send the email
 	if ( isset( $_POST['update-app'] ) ) {
 
 		// sanitize form values
@@ -426,14 +496,14 @@ function update_app() {
 }
 update_app();
 
-// An extra value set to archived as 0 (false) or 1 (true)
-/** Handling the form submission */
+/**
+ * Archiving an app from PlaceSpeak Options page
+ * Set to archived as 0 (false) or 1 (true)
+ */
 function archive_app() {
 
-	// if the submit button is clicked, send the email
 	if ( isset( $_POST['archive-app'] ) ) {
 
-		// sanitize form values
 		$app_id          = $_POST["app-id"];
         
         global $wpdb;
@@ -456,14 +526,14 @@ function archive_app() {
 }
 archive_app();
 
-// An extra value set to archived as 0 (false) or 1 (true)
-/** Handling the form submission */
+/**
+ * Unarchiving an app from PlaceSpeak Options page
+ * Set to archived as 0 (false) or 1 (true)
+ */
 function unarchive_app() {
 
-	// if the submit button is clicked, send the email
 	if ( isset( $_POST['unarchive-app'] ) ) {
 
-		// sanitize form values
 		$app_id          = $_POST["app-id"];
         
         global $wpdb;
@@ -486,23 +556,82 @@ function unarchive_app() {
 }
 unarchive_app();
 
-// Enque scripts for the shortcode display
+/**
+ * Selection of app on post edit with a dropdown inside a metabox
+ * 
+ */
+add_action( 'edit_form_after_editor', 'select_placespeak_app' );
+function select_placespeak_app() {
+    global $wpdb;
+
+	$table_name = $wpdb->prefix . 'placespeak';
+    
+    $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE archived = 0");
+    
+    $post_id = $_GET['post'];
+    $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true);
+    if($current_app_id) {
+        $current_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
+    }
+    function my_callback($post,$metabox) {
+        if($metabox['args']['current_app_id']) { ?>
+            <p>Current App: <strong><?php echo $metabox['args']['current_app']->app_name; ?></strong></p>
+        <?php } ?>
+        <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
+        <select name="placespeak_app_id" id="placespeak_app_id">
+            <option value="">(no app)</option>
+            <!-- Some fiddling here to make sure the options come out correctly -->
+            <?php for ($i=0;$i<count($metabox['args']['client_info']); ++$i) { ?>
+                <option class="level-0" value="<?php echo $metabox['args']['client_info'][$i]->id ?>" <?php if($metabox['args']['client_info'][$i]->id==$metabox['args']['current_app_id']) { echo "selected='selected'"; } ?>><?php echo $metabox['args']['client_info'][$i]->app_name; ?></option>
+            <?php } ?>
+        </select>
+        <?php 
+    }
+    // Add meta box for posts and for pages
+    $post_types = array('post','page');
+    foreach($post_types as $post_type) {
+        add_meta_box( 
+            'select_placespeak_app', 
+            'Select PlaceSpeak App', 
+            'my_callback', 
+            $post_type, 
+            'side', 
+            'default',
+            array('current_app_id'=>$current_app_id, 'current_app'=>$current_app, 'client_info'=>$client_info )
+        );
+    }
+    ?>
+<?php 
+}
+
+/**
+ * FRONT END SHORTCODE AND BUTTON
+ * 
+*/
+
+/**
+ * Enqueue scripts for the map display and custom JS when button appears
+ * This is loaded every time, in case they are using a shortcode
+ */
 function placespeak_scripts() {
     wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'));
     wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('jquery','leaflet-js'));
-	wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
+    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
 
     wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . '/css/leaflet.css' );
-	wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . '/css/placespeak.css' );
-    
-	wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'),'0.7.7',false);
-	wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
-	wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
+    wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . '/css/placespeak.css' );
+
+    wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'),'0.7.7',false);
+    wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
+    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
 }
 
 add_action( 'wp_enqueue_scripts', 'placespeak_scripts' );
 
-// Shortcode for Connect button
+/**
+ * Shortcode Connect button, which allows a user to sign in and see map with green dots
+ * Admin can add this in widgets, post content, etc
+ */
 function placespeak_connect_shortcode($atts) {
     // Get shortcode atts
     $shortcode_connect_atts = shortcode_atts( array(
@@ -510,31 +639,20 @@ function placespeak_connect_shortcode($atts) {
         'button' => 'green' // Default displays green button
     ), $atts );
     
-    // Get plugin data from DB
     global $wpdb;
 
 	$table_name = $wpdb->prefix . 'placespeak';
     
     $client_info = $wpdb->get_results("SELECT * FROM " . $table_name);
 
-    // Do request to see if user is logged in and connected to an app
-    /*
-    $response = wp_remote_get( 'http://dev.placespeak.com/connect/testsignin/' );
-    if( is_array($response) ) {
-      $header = $response['headers']; // array of http header lines
-      $body = $response['body']; // use the content
-    }
-    print_r($response);
-    */
     $url = $_SERVER['REQUEST_URI'];
     $escaped_url = htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' );
 ?>
     
     <div style="font-size:12px !important;">
-<!--        <a onClick="openwindow('login')">Log In</a> | <a onClick="openwindow('signup')">Sign Up</a>-->
         <div id="placespeak_connect_button">
             <div style="margin-bottom:10px;">
-                <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
+                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
                     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_<?php echo $shortcode_connect_atts['button']; ?>.png">
                 </a>
             </div>
@@ -553,55 +671,24 @@ function placespeak_connect_shortcode($atts) {
             <p>Powered by <img id="powered_by_placespeak_logo" src="<?php echo plugin_dir_url(__FILE__); ?>/img/placespeak_logo.png"></p>
         </div>
     </div>
-<!--
-    Keep this if we keep the sign up / log in buttons
-    <script>
-    function openwindow(type) {
-        var width = window.innerWidth;
-        var height = window.innerHeight;
-        var left = (width / 2);
-        var top = (height / 2);
-        var url;
-        var popupWidth;
-        var popupHeight;
-        if(type==='signup') {
-            url = 'signup/';
-            popupWidth = (screen.width*0.8)>1000 ? 1000 : (screen.width*0.8)
-            popupHeight = (screen.height*0.7);
-            left = screen.height*0.1;
-            top = screen.height*0.1;
-        } else {
-            url = 'loginwidget/?next=/profile/';
-            popupWidth = 500;
-            popupHeight = 300;
-        }
-        var NewWindow = window.open('http://dev.placespeak.com/'+url,'mywindow','width='+popupWidth+',height='+popupHeight+',top='+top+',left='+left);
-        NewWindow.onunload = refreshParent;
-        function refreshParent() {
-            NewWindow.opener.location.reload();
-            NewWindow.onunload = refreshParent;
-        }
-    }
-    </script>
--->
 
 <?php }
 
 add_shortcode('placespeak_connect', 'placespeak_connect_shortcode');
 add_filter('widget_text', 'do_shortcode');
 
-// Comment form hook, so it's added in a given post
-// I could do this with an option check to add to all posts
-// or allow it to be added to posts individually
 
-// Note: this only works if you're using a theme with the hooks in the right places in the comments. This isn't all themes
+/**
+ * Adding connect button after form fields if user has selected it for that post
+ * Appears whether logged in or not
+ * Note: theme must contain appropriate hooks (WP defaults)
+ */
 add_action( 'comment_form_after_fields', 'placespeak_connect_field', 20 );
 add_action( 'comment_form_logged_in_after', 'placespeak_connect_field', 20 );
 function placespeak_connect_field() {
     // Gets placespeak_app_id out of the settings, if it's set
     $current_app_id = get_post_meta( get_the_ID(), 'placespeak_app_id', true);
     if($current_app_id) { 
-        // Get plugin data from DB
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'placespeak';
@@ -615,7 +702,7 @@ function placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a href="http://dev.placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                     <div id="pre_verified_by_placespeak" style="display:none;">
@@ -644,50 +731,23 @@ function placespeak_connect_field() {
     
 }
 
-// This is where you select an app for your post or page
-add_action( 'edit_form_after_editor', 'select_placespeak_app' );
-function select_placespeak_app() {
-    // Get plugin data from DB
-    global $wpdb;
+/**
+ * COMMENT HANDLING AND ADMINISTRATION
+ */
 
-	$table_name = $wpdb->prefix . 'placespeak';
-    
-    $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE archived = 0");
-    
-    $post_id = $_GET['post'];
-    $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true);
-    if($current_app_id){
-        $current_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
-    }
-    ?>
-    <!-- Spit out a metabox; this is NOT a real metabox really -->
-    <div id="select_placespeak_app" class="postbox " style="margin-top:40px;">
-        <div class="handlediv" title="Click to toggle"><br></div>
-        <h3 class="hndle ui-sortable-handle"><span>Select PlaceSpeak App</span></h3>
-        <div class="inside">
-            <?php if($current_app_id) { ?>
-                <p>Current App: <strong><?php echo $current_app->app_name; ?></strong></p>
-            <?php } ?>
-            <label class="screen-reader-text" for="placespeak_app_id">App for this post/page</label>
-            <select name="placespeak_app_id" id="placespeak_app_id">
-                <option value="">(no app)</option>
-                <!-- Some fiddling here to make sure the options come out correctly -->
-                <?php for ($i=0;$i<count($client_info); ++$i) { ?>
-                    <option class="level-0" value="<?php echo $client_info[$i]->id ?>" <?php if($client_info[$i]->id==$current_app_id) { echo "selected='selected'"; } ?>><?php echo $client_info[$i]->app_name; ?></option>
-                <?php } ?>
-            </select>
-        </div>
-    </div>
-<?php 
-}
-
-// It saves the placespeak_app_id when someone presses "Update" or "Save"
+/**
+ * Saving selected PlaceSpeak app on post edit page
+ * 
+ */
 add_action( 'save_post', 'save_placespeak_app_info' );
 function save_placespeak_app_info( $post_id ) {
     update_post_meta( $post_id, 'placespeak_app_id', sanitize_text_field( $_REQUEST['placespeak_app_id'] ) );
 }
 
-// This modified the comment save, so it also saves meta information with the hidden field
+/**
+ * When a comment is saved into the DB, add PlaceSpeak information if it exists
+ * These are hidden fields appended inside comment_form after user returns from authenticating an app
+ */
 add_action( 'comment_post', 'save_user_comment_information' );
 function save_user_comment_information($comment_id) {
     // If it has this input field, then it's been verified
@@ -699,7 +759,11 @@ function save_user_comment_information($comment_id) {
             
     }
 }
-// Adding a column to "comments" that shows whether comment is verified or not
+
+/**
+ * Adding columns to comments admin page, showing verification levels, user name, and region inside relevant app if applicable
+ * 
+ */
 add_filter('manage_edit-comments_columns', 'add_new_comments_columns');
 function add_new_comments_columns($comments_columns) {
     $comments_columns['placespeak_verified'] = 'PlaceSpeak Verified';
@@ -707,7 +771,10 @@ function add_new_comments_columns($comments_columns) {
     $comments_columns['placespeak_region'] = 'PlaceSpeak App Region';
     return $comments_columns;
 }
-// Populating that column
+/**
+ * Populating columns created above
+ * 
+ */
 add_action('manage_comments_custom_column','manage_comments_columns',10,2);
 function manage_comments_columns($column_name, $id) {
     switch ($column_name) {
@@ -745,5 +812,41 @@ function manage_comments_columns($column_name, $id) {
             break;
     }
 }
+
+/**
+ * SINGLE SIGN ON
+ * REMOVED IN 1.0.0
+*/
+ 
+/**
+ * Adding button to wp-login.php
+ * 
+add_filter('login_message', 'add_placespeak_single_sign_on');
+function add_placespeak_single_sign_on() {
+    $single_sign_on = get_option('placespeak_single_sign_on');
+    if($single_sign_on!=='') {
+        $app_id = $single_sign_on;
+        
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'placespeak';
+        
+        $single_sign_on_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $app_id);
+        
+        $url = $_SERVER['REQUEST_URI'];
+        $url = urlencode($url);
+        $escaped_url = htmlspecialchars( $url, ENT_QUOTES );
+        
+        ?>
+        <p style="text-align:center;">
+            <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $single_sign_on_app->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $single_sign_on_app->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $single_sign_on_app->id; ?>">
+                <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
+            </a>    
+        </p>
+
+        <?php
+    }
+}
+*/
 
 ?>
