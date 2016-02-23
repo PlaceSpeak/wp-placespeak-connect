@@ -40,7 +40,7 @@ if ( ! defined( 'WPINC' ) ) {
 global $placespeak_db_version;
 $placespeak_db_version = '1.0';
 
-function placespeak_install() {
+function ps_placespeak_install() {
 	global $wpdb;
 	global $placespeak_db_version;
 
@@ -71,7 +71,7 @@ function placespeak_install() {
  * Install initial data of sample app
  * 
  */
-function placespeak_install_data() {
+function ps_placespeak_install_data() {
 	global $wpdb;
     
 	$table_name = $wpdb->prefix . 'placespeak';
@@ -98,14 +98,14 @@ function placespeak_install_data() {
     }
 }
 
-register_activation_hook( __FILE__, 'placespeak_install' );
-register_activation_hook( __FILE__, 'placespeak_install_data' );
+register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
+register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
 
 /**
  * Radio button in settings that allows user to choose storage of users
  * 
  */
-function choose_placespeak_user_table() {
+function ps_choose_placespeak_user_table() {
 	if ( isset( $_POST['choose-placespeak-user-table'] ) ) {
        $user_storage = $_POST['user_storage'];
         
@@ -140,7 +140,7 @@ function choose_placespeak_user_table() {
        }
     }
 }
-choose_placespeak_user_table();
+ps_choose_placespeak_user_table();
 
 /**
  * Checkbox for turning single sign-on on and off. Disabled for now.
@@ -166,15 +166,15 @@ choose_placespeak_single_sign_on();
  * Adding PlaceSpeak item to Settings in wp-admin
  * 
  */
-add_action( 'admin_menu', 'my_plugin_menu' );
-function my_plugin_menu() {
-	add_options_page( 'PlaceSpeak Options', 'PlaceSpeak', 'manage_options', 'placespeak', 'my_plugin_options' );
+add_action( 'admin_menu', 'ps_plugin_menu' );
+function ps_plugin_menu() {
+	add_options_page( 'PlaceSpeak Options', 'PlaceSpeak', 'manage_options', 'placespeak', 'ps_plugin_options' );
 }
 /**
  * PlaceSpeak Options page
  * Has table storage options, ability to add a new app, and listing of apps with ability to edit them and archive
  */
-function my_plugin_options() {
+function ps_plugin_options() {
     
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -427,7 +427,7 @@ function my_plugin_options() {
  * Adding a new app to DB from PlaceSpeak Options page
  * 
  */
-function add_new_app() {
+function ps_add_new_app() {
 
 	// if the submit button is clicked, send the email
 	if ( isset( $_POST['add-new-app'] ) ) {
@@ -453,13 +453,13 @@ function add_new_app() {
         );
     }
 }
-add_new_app();
+ps_add_new_app();
 
 /**
  * Updating an app from PlaceSpeak Options page
  * 
  */
-function update_app() {
+function ps_update_app() {
 
 	if ( isset( $_POST['update-app'] ) ) {
 
@@ -494,13 +494,13 @@ function update_app() {
         );
 	}
 }
-update_app();
+ps_update_app();
 
 /**
  * Archiving an app from PlaceSpeak Options page
  * Set to archived as 0 (false) or 1 (true)
  */
-function archive_app() {
+function ps_archive_app() {
 
 	if ( isset( $_POST['archive-app'] ) ) {
 
@@ -524,13 +524,13 @@ function archive_app() {
         );
 	}
 }
-archive_app();
+ps_archive_app();
 
 /**
  * Unarchiving an app from PlaceSpeak Options page
  * Set to archived as 0 (false) or 1 (true)
  */
-function unarchive_app() {
+function ps_unarchive_app() {
 
 	if ( isset( $_POST['unarchive-app'] ) ) {
 
@@ -554,14 +554,14 @@ function unarchive_app() {
         );
 	}
 }
-unarchive_app();
+ps_unarchive_app();
 
 /**
  * Selection of app on post edit with a dropdown inside a metabox
  * 
  */
-add_action( 'edit_form_after_editor', 'select_placespeak_app' );
-function select_placespeak_app() {
+add_action( 'edit_form_after_editor', 'ps_select_placespeak_app' );
+function ps_select_placespeak_app() {
     global $wpdb;
 
 	$table_name = $wpdb->prefix . 'placespeak';
@@ -613,7 +613,7 @@ function select_placespeak_app() {
  * Enqueue scripts for the map display and custom JS when button appears
  * This is loaded every time, in case they are using a shortcode
  */
-function placespeak_scripts() {
+function ps_placespeak_scripts() {
     wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'));
     wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('jquery','leaflet-js'));
     wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
@@ -626,13 +626,13 @@ function placespeak_scripts() {
     wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
 }
 
-add_action( 'wp_enqueue_scripts', 'placespeak_scripts' );
+add_action( 'wp_enqueue_scripts', 'ps_placespeak_scripts' );
 
 /**
  * Shortcode Connect button, which allows a user to sign in and see map with green dots
  * Admin can add this in widgets, post content, etc
  */
-function placespeak_connect_shortcode($atts) {
+function ps_placespeak_connect_shortcode($atts) {
     // Get shortcode atts
     $shortcode_connect_atts = shortcode_atts( array(
         'id' => '1', // Default just pulls the first one
@@ -674,7 +674,7 @@ function placespeak_connect_shortcode($atts) {
 
 <?php }
 
-add_shortcode('placespeak_connect', 'placespeak_connect_shortcode');
+add_shortcode('placespeak_connect', 'ps_placespeak_connect_shortcode');
 add_filter('widget_text', 'do_shortcode');
 
 
@@ -683,9 +683,9 @@ add_filter('widget_text', 'do_shortcode');
  * Appears whether logged in or not
  * Note: theme must contain appropriate hooks (WP defaults)
  */
-add_action( 'comment_form_after_fields', 'placespeak_connect_field', 20 );
-add_action( 'comment_form_logged_in_after', 'placespeak_connect_field', 20 );
-function placespeak_connect_field() {
+add_action( 'comment_form_after_fields', 'ps_placespeak_connect_field', 20 );
+add_action( 'comment_form_logged_in_after', 'ps_placespeak_connect_field', 20 );
+function ps_placespeak_connect_field() {
     // Gets placespeak_app_id out of the settings, if it's set
     $current_app_id = get_post_meta( get_the_ID(), 'placespeak_app_id', true);
     if($current_app_id) { 
@@ -739,8 +739,8 @@ function placespeak_connect_field() {
  * Saving selected PlaceSpeak app on post edit page
  * 
  */
-add_action( 'save_post', 'save_placespeak_app_info' );
-function save_placespeak_app_info( $post_id ) {
+add_action( 'save_post', 'ps_save_placespeak_app_info' );
+function ps_save_placespeak_app_info( $post_id ) {
     update_post_meta( $post_id, 'placespeak_app_id', sanitize_text_field( $_REQUEST['placespeak_app_id'] ) );
 }
 
@@ -748,8 +748,8 @@ function save_placespeak_app_info( $post_id ) {
  * When a comment is saved into the DB, add PlaceSpeak information if it exists
  * These are hidden fields appended inside comment_form after user returns from authenticating an app
  */
-add_action( 'comment_post', 'save_user_comment_information' );
-function save_user_comment_information($comment_id) {
+add_action( 'comment_post', 'ps_save_user_comment_information' );
+function ps_save_user_comment_information($comment_id) {
     // If it has this input field, then it's been verified
     if($_POST['placespeak_verifications']) {
         add_comment_meta( $comment_id, 'placespeak_verified_user', $_POST['placespeak_user_id'] );
@@ -764,8 +764,8 @@ function save_user_comment_information($comment_id) {
  * Adding columns to comments admin page, showing verification levels, user name, and region inside relevant app if applicable
  * 
  */
-add_filter('manage_edit-comments_columns', 'add_new_comments_columns');
-function add_new_comments_columns($comments_columns) {
+add_filter('manage_edit-comments_columns', 'ps_add_new_comments_columns');
+function ps_add_new_comments_columns($comments_columns) {
     $comments_columns['placespeak_verified'] = 'PlaceSpeak Verified';
     $comments_columns['placespeak_user_name'] = 'PlaceSpeak User Name';
     $comments_columns['placespeak_region'] = 'PlaceSpeak App Region';
@@ -775,8 +775,8 @@ function add_new_comments_columns($comments_columns) {
  * Populating columns created above
  * 
  */
-add_action('manage_comments_custom_column','manage_comments_columns',10,2);
-function manage_comments_columns($column_name, $id) {
+add_action('manage_comments_custom_column','ps_manage_comments_columns',10,2);
+function ps_manage_comments_columns($column_name, $id) {
     switch ($column_name) {
         case 'placespeak_verified':
             $user_id = get_comment_meta($id,'placespeak_verified_user',true);
