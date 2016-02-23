@@ -35,7 +35,6 @@ $.ajax({
                 // Refill the form with values from localStorage if they exist, then delete keys and information
                 console.log('hi');
                 $('#placespeak_connect_button').closest("form").each(function() {
-                    console.log('found form');
                     $(this).find(':input').each(function() {
                         if($(this).hasClass('submit')) {} else {
                         if($(this).attr("name")&&$(this).attr("name")!=='inputsubmit') {
@@ -44,10 +43,12 @@ $.ajax({
                     });
                 });
                 var localStorageString = localStorage.getItem('keyNames');
-                var localStorageArray = localStorageString.split(',');
-                localStorageArray.forEach(function(element,index,array) {
-                    localStorage.removeItem(element);
-                });
+                if(localStorageString !== null) {
+                    var localStorageArray = localStorageString.split(',');
+                    localStorageArray.forEach(function(element,index,array) {
+                        localStorage.removeItem(element);
+                    });
+                }
                 localStorage.removeItem('keyNames');
                 // Autofill the form and add input fields (verification levels, geo_labels for this app, and user id)
                 // ID is always "author" by default in WP comment area
