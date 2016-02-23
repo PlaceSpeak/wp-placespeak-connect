@@ -37,9 +37,8 @@ $.ajax({
                 $('#placespeak_connect_button').closest("form").each(function() {
                     console.log('found form');
                     $(this).find(':input').each(function() {
-                        console.log('found input'+$(this).attr("name"));
-                        if($(this).attr("name")) {
-                            console.log('replacing input');
+                        if($(this).hasClass('submit')) {} else {
+                        if($(this).attr("name")&&$(this).attr("name")!=='inputsubmit') {
                             $(this).val(localStorage.getItem($(this).attr("name")));
                         }
                     });
