@@ -33,7 +33,6 @@ $.ajax({
                 console.log(data.error);
             } else {
                 // Refill the form with values from localStorage if they exist, then delete keys and information
-                console.log('hi');
                 $('#placespeak_connect_button').closest("form").each(function() {
                     $(this).find(':input').each(function() {
                         if($(this).attr("name")&&$(this).attr("name")!=='inputsubmit') {
@@ -47,8 +46,8 @@ $.ajax({
                     localStorageArray.forEach(function(element,index,array) {
                         localStorage.removeItem(element);
                     });
+                    localStorage.removeItem('keyNames');
                 }
-                localStorage.removeItem('keyNames');
                 // Autofill the form and add input fields (verification levels, geo_labels for this app, and user id)
                 // ID is always "author" by default in WP comment area
                 $('#author').val(data.first_name + ' ' + data.last_name);
