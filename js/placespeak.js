@@ -32,10 +32,11 @@ $.ajax({
             if(data.error) {
                 console.log(data.error);
             } else {
+                $('#author').val(data.first_name + ' ' + data.last_name);
                 // Refill the form with values from localStorage if they exist, then delete keys and information
                 $('#placespeak_connect_button').closest("form").each(function() {
                     $(this).find(':input').each(function() {
-                        if($(this).attr("name")&&$(this).attr("name")!=='inputsubmit') {
+                        if($(this).attr("name")&&$(this).attr("name")!=='submit'&&localStorage.getItem($(this).attr("name"))) {
                             $(this).val(localStorage.getItem($(this).attr("name")));
                         }
                     });
@@ -50,7 +51,6 @@ $.ajax({
                 }
                 // Autofill the form and add input fields (verification levels, geo_labels for this app, and user id)
                 // ID is always "author" by default in WP comment area
-                $('#author').val(data.first_name + ' ' + data.last_name);
                 $('#placespeak_connect_button').after("<input type='hidden' name='placespeak_verifications' value='"+data.verifications+"'>");
                 $('#placespeak_connect_button').after('<input type="hidden" name="placespeak_user_name" value="'+data.first_name+' '+data.last_name+'">');
                 $('#placespeak_connect_button').after('<input type="hidden" name="placespeak_geo_labels" value="'+data.geo_labels+'">');
@@ -79,20 +79,32 @@ $.ajax({
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map);
+        console.log(data[0]);
         // Decoding polygon and placing on map
         var polygons = [];
-        data[0].encoded_polygons.forEach(function(element,index,array) {
-            console.log(element);
-            var decodedPoly = L.PolylineUtil.decode(element.encoded_polygon);
-            var decodedWithItemRemoved = decodedPoly.splice(1,decodedPoly.length);
-            // This loop may be unnecessary - specific to a strange bug that occurred in testing
-            decodedWithItemRemoved.forEach(function(element2,index2,array2) {
-                // Had a bug where something NaN appeared
-                if(isNaN(element2[0])||isNaN(element2[1])) {
-                    decodedWithItemRemoved.splice(index2,1);
+        data[0].wkt_polygons.forEach(function(element,index,array) {
+            console.log(element.polygon_wkt);
+            // Has "[u'" on the front and "']" at the end from Django
+            var removedFront = element.polygon_wkt.substr(16);
+            var removedBack = removedFront.substr(0,removedFront.length-3);
+            var firstArray = removedBack.split(', ');
+            var revisedArray = [];
+            firstArray.forEach(function(element2,index2,array2) {
+                if(element2.indexOf(')') > -1) {
+                    var element2 = element2.replace(')', '');
                 }
+                if(element2.indexOf('(') > -1) {
+                    var element2 = element2.replace('(', '');
+                }
+                var thisArray = element2.split(' ');
+                thisArray[0] = parseFloat(thisArray[0]);
+                thisArray[1] = parseFloat(thisArray[1]);
+                thisArray.reverse();
+                revisedArray.push(thisArray);
             });
-            var polygon = L.polygon(decodedWithItemRemoved, {
+//            var decodedPoly = L.PolylineUtil.decode(removedBack);
+//            console.log(decodedPoly);
+            var polygon = L.polygon(revisedArray, {
                 fillColor: '#9CCBCF',
                 color: "#000",
                 weight: 0.1,
@@ -127,7 +139,7 @@ function saveFormToLocalStorage() {
         jQuery(this).find(':input').each(function() {
             if(jQuery(this).attr("name")&&jQuery(this).val()) {
                 localStorage.setItem(jQuery(this).attr("name"), jQuery(this).val());
-                keyNames.push($(this).attr("name"));
+                keyNames.push(jQuery(this).attr("name"));
             }
         });
         localStorage.setItem('keyNames',keyNames);
