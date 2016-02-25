@@ -98,7 +98,7 @@ function ps_placespeak_install_data() {
     }
 }
 
-register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
+register_activation_hook( __FILE__, 'ps_placespeak_install' );
 register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
 
 /**
@@ -264,7 +264,9 @@ function ps_plugin_options() {
                 <tr><td>App Name</td><td><input type="text" name="app-name" placeholder="App name"></td></tr>
                 <tr><td>App Key</td><td><input type="text" name="app-key" placeholder="App Key"></td></tr>
                 <tr><td>App Secret</td><td><input type="text" name="app-secret" placeholder="App Secret"></td></tr>
-                <tr><td>Redirect URI</td><td><input type="text" name="redirect-url" placeholder="Redirect URL" value="<?php echo site_url(); ?>"> <small>This should be where your Wordpress is installed.</small></td></tr>
+                <tr><td>Redirect URI:</td><td>
+                    <strong><?php echo site_url(); ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php<small></strong> (This is for your PlaceSpeak app.)</small>
+                    <input type="hidden" name="redirect-url" placeholder="Redirect URL" value="<?php echo site_url(); ?>"> </td></tr>
             </table>
             <input type="submit" name="add-new-app">
         </form>
@@ -357,7 +359,7 @@ function ps_plugin_options() {
                                             <label>
                                                 <span class="title">Redirect URI</span>
                                                 <span class="input-text-wrap">
-                                                    <input class="ptitle" name="redirect-url" type="text" value="<?php echo $client_info[$i]->redirect_uri ?> ">
+                                                    <input class="ptitle" name="redirect-url" type="text" value="<?php echo $client_info[$i]->redirect_uri ?>">
                                                 </span>
                                             </label>
                                         </div>
@@ -614,16 +616,16 @@ function ps_select_placespeak_app() {
  * This is loaded every time, in case they are using a shortcode
  */
 function ps_placespeak_scripts() {
-    wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'));
-    wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('jquery','leaflet-js'));
-    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'));
+    wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'));
+    wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('jquery','leaflet-js'));
+    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.13');
 
-    wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . '/css/leaflet.css' );
-    wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . '/css/placespeak.css' );
+    wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . 'css/leaflet.css' );
+    wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . 'css/placespeak.css' );
 
-    wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . '/js/leaflet.js', array('jquery'),'0.7.7',false);
-    wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . '/js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
-    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . '/js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1',true);
+    wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'),'0.7.7',false);
+    wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
+    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.13',true);
 }
 
 add_action( 'wp_enqueue_scripts', 'ps_placespeak_scripts' );
