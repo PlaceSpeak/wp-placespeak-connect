@@ -54,7 +54,6 @@ function ps_placespeak_install() {
 		app_name varchar(50) NOT NULL,
 		client_key varchar(50) NOT NULL,
 		client_secret varchar(50) NOT NULL,
-		redirect_uri varchar(200) NOT NULL,
         archived boolean not null default 0,
 		UNIQUE KEY id (id)
 	) $charset_collate;";
@@ -66,6 +65,8 @@ function ps_placespeak_install() {
     add_option( 'placespeak_db_version', $placespeak_db_version);
     // Default user WP_USERS for user storage
     add_option( 'placespeak_user_storage', 'WP_USERS');
+    // Default show comment meta on front end
+    add_option( 'placespeak_commenter_metadata', 'SHOW_DATA');
 }
 /**
  * Install initial data of sample app
@@ -81,7 +82,6 @@ function ps_placespeak_install_data() {
         $welcome_app = 'Sample App Name';
         $welcome_key = 'No app key entered.';
         $welcome_secret = 'No app secret entered.';
-        $welcome_redirect = 'No redirect entered.';
 
         $table_name = $wpdb->prefix . 'placespeak';
 
@@ -91,8 +91,7 @@ function ps_placespeak_install_data() {
                 'time' => current_time( 'mysql' ), 
                 'app_name' => $welcome_app, 
                 'client_key' => $welcome_key,  
-                'client_secret' => $welcome_secret, 
-                'redirect_uri' => $welcome_redirect
+                'client_secret' => $welcome_secret
             ) 
         );
     }
@@ -141,6 +140,14 @@ function ps_choose_placespeak_user_table() {
     }
 }
 ps_choose_placespeak_user_table();
+
+function ps_choose_commenter_metadata() {
+	if ( isset( $_POST['choose-commenter-metadata'] ) ) {
+       $commenter_metadata = $_POST['commenter_metadata'];
+       update_option( 'placespeak_commenter_metadata', $commenter_metadata);
+    }
+}
+ps_choose_commenter_metadata();
 
 /**
  * Checkbox for turning single sign-on on and off. Disabled for now.
@@ -212,6 +219,8 @@ function ps_plugin_options() {
     $user_storage = get_option('placespeak_user_storage');
     // Seeing if user allows single sign on
     $single_sign_on = get_option('placespeak_single_sign_on');
+    // Get commenter metadata 
+    $commenter_metadata = get_option( 'placespeak_commenter_metadata');
     ?>
 
     <style>
@@ -242,6 +251,8 @@ function ps_plugin_options() {
     </style>
     
 	<div class="wrap">
+        <h3>Instructions</h3>
+        <p>Redirect URL: <strong><?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php</strong></p>
         <h3>Options</h3>
         <p><strong>User Storage</strong></p>
         <form action="" method="post">
@@ -251,10 +262,18 @@ function ps_plugin_options() {
             <br>
             <input type="submit" name="choose-placespeak-user-table" value="Save">
         </form>
+        <p><strong>Show commenter metadata</strong></p>
+        <form action="" method="post">
+            <input type="radio" name="commenter_metadata" <?php if($commenter_metadata == 'SHOW_DATA') echo "checked"; ?> value="SHOW_DATA" />Show data on the front end (<strong>default</strong>).
+            <br>
+            <input type="radio" name="commenter_metadata" <?php if($commenter_metadata == 'HIDE_DATA') echo "checked"; ?> value="HIDE_DATA" />Show only to admins in the back end.
+            <br>
+            <input type="submit" name="choose-commenter-metadata" value="Save">
+        </form>
         <!-- Single sign on disabled -->
         <!-- <p><strong>Single Sign On</strong></p>
         <form action="" method="post">
-            <input type="checkbox" name="single_sign_on_checkbox" <?php if($single_sign_on!=='') echo "checked"; ?> value="single_sign_on" /> PlaceSpeak users can sign into Wordpress using their PlaceSpeak login.
+            <input type="checkbox" name="single_sign_on_checkbox" <?php // if($single_sign_on!=='') echo "checked"; ?> value="single_sign_on" /> PlaceSpeak users can sign into Wordpress using their PlaceSpeak login.
             <br>
             <input type="submit" name="single-sign-on" value="Save">
         </form> -->
@@ -264,9 +283,6 @@ function ps_plugin_options() {
                 <tr><td>App Name</td><td><input type="text" name="app-name" placeholder="App name"></td></tr>
                 <tr><td>App Key</td><td><input type="text" name="app-key" placeholder="App Key"></td></tr>
                 <tr><td>App Secret</td><td><input type="text" name="app-secret" placeholder="App Secret"></td></tr>
-                <tr><td>Redirect URI:</td><td>
-                    <strong><?php echo site_url(); ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php<small></strong> (This is for your PlaceSpeak app.)</small>
-                    <input type="hidden" name="redirect-url" placeholder="Redirect URL" value="<?php echo site_url(); ?>"> </td></tr>
             </table>
             <input type="submit" name="add-new-app">
         </form>
@@ -287,11 +303,6 @@ function ps_plugin_options() {
                     style="">App key</th>
                     <th class="manage-column column-author" id="author" scope="col"
                     style="">App secret</th>
-                    <th class="manage-column column-date sortable asc" id="date"
-                    scope="col" style="">
-                        <span>Redirect URI</span><span class=
-                        "sorting-indicator"></span>
-                    </th>
                 </tr>
             </thead>
             <tbody id="the-list">
@@ -327,13 +338,10 @@ function ps_plugin_options() {
                             <td class="author column-author">
                                 <?php echo $client_info[$i]->client_secret ?> 
                             </td>
-                            <td class="author column-author">
-                                <?php echo $client_info[$i]->redirect_uri ?> 
-                            </td>
                         </tr>
                         <tr class="inline-edit-row inline-edit-row-page inline-edit-page quick-edit-row quick-edit-row-page inline-edit-page alternate inline-editor"
                         id="edit-<?php echo $client_info[$i]->id ?>" style="">
-                            <td class="colspanchange" colspan="5">
+                            <td class="colspanchange" colspan="4">
                                 <form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ) ?>" method="post">
                                     <fieldset class="inline-edit-col-left">
                                         <div class="inline-edit-col">
@@ -354,12 +362,6 @@ function ps_plugin_options() {
                                                 <span class="title">App secret</span>
                                                 <span class="input-text-wrap">
                                                     <input class="ptitle" name="app-secret" type="text" value="<?php echo $client_info[$i]->client_secret ?>">
-                                                </span>
-                                            </label>
-                                            <label>
-                                                <span class="title">Redirect URI</span>
-                                                <span class="input-text-wrap">
-                                                    <input class="ptitle" name="redirect-url" type="text" value="<?php echo $client_info[$i]->redirect_uri ?>">
                                                 </span>
                                             </label>
                                         </div>
@@ -441,7 +443,6 @@ function ps_add_new_app() {
 		$app_name        = sanitize_text_field( $_POST["app-name"] );
 		$client_key      = sanitize_text_field( $_POST["app-key"] );
 		$client_secret   = sanitize_text_field( $_POST["app-secret"] );
-		$redirect_uri    = sanitize_text_field( $_POST["redirect-url"] );
     
         $wpdb->insert( 
             $table_name, 
@@ -449,8 +450,7 @@ function ps_add_new_app() {
                 'time' => current_time( 'mysql' ), 
                 'app_name' => $app_name, 
                 'client_key' => $client_key, 
-                'client_secret' => $client_secret, 
-                'redirect_uri' => $redirect_uri
+                'client_secret' => $client_secret
             ) 
         );
     }
@@ -470,7 +470,6 @@ function ps_update_app() {
 		$app_name        = sanitize_text_field( $_POST["app-name"] );
 		$client_key      = sanitize_text_field( $_POST["app-key"] );
 		$client_secret   = sanitize_text_field( $_POST["app-secret"] );
-		$redirect_uri    = sanitize_text_field( $_POST["redirect-url"] );
         
         global $wpdb;
 
@@ -482,12 +481,10 @@ function ps_update_app() {
                 'time' => current_time( 'mysql' ), 
                 'app_name' => $app_name, 
                 'client_key' => $client_key, 
-                'client_secret' => $client_secret, 
-                'redirect_uri' => $redirect_uri, 
+                'client_secret' => $client_secret
             ),
             array( 'ID' => $app_id ),
             array( 
-                '%s',
                 '%s',
                 '%s',
                 '%s'
@@ -618,14 +615,14 @@ function ps_select_placespeak_app() {
 function ps_placespeak_scripts() {
     wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'));
     wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('jquery','leaflet-js'));
-    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.13');
+    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.20');
 
     wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . 'css/leaflet.css' );
     wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . 'css/placespeak.css' );
 
     wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'),'0.7.7',false);
     wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
-    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.13',true);
+    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.20',true);
 }
 
 add_action( 'wp_enqueue_scripts', 'ps_placespeak_scripts' );
@@ -641,11 +638,13 @@ function ps_placespeak_connect_shortcode($atts) {
         'button' => 'green' // Default displays green button
     ), $atts );
     
+    $current_app_id = wp_kses_post($shortcode_connect_atts['id']);
+    
     global $wpdb;
 
 	$table_name = $wpdb->prefix . 'placespeak';
     
-    $client_info = $wpdb->get_results("SELECT * FROM " . $table_name);
+    $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
 
     $url = $_SERVER['REQUEST_URI'];
     $escaped_url = htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' );
@@ -654,7 +653,7 @@ function ps_placespeak_connect_shortcode($atts) {
     <div style="font-size:12px !important;">
         <div id="placespeak_connect_button">
             <div style="margin-bottom:10px;">
-                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $shortcode_connect_atts['id']-1; ?>">
+                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_<?php echo $shortcode_connect_atts['button']; ?>.png">
                 </a>
             </div>
@@ -704,7 +703,7 @@ function ps_placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $client_info->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                     <div id="pre_verified_by_placespeak" style="display:none;">
@@ -806,7 +805,7 @@ function ps_manage_comments_columns($column_name, $id) {
                 echo $user_geo_labels;
             } else {
                 if(get_comment_meta($id,'placespeak_verified_user',true)) {
-                    echo "User is not in this app's regions.";
+                    echo "None";
                 }
             }
             break;
@@ -814,6 +813,27 @@ function ps_manage_comments_columns($column_name, $id) {
             break;
     }
 }
+
+// Adding comment meta data if required. If the comment-meta plugin is installed it will integrate seamlessly.
+function ps_add_area_metadata($comment) {
+     $commenter_metadata_option = get_option( 'placespeak_commenter_metadata' );
+     if($commenter_metadata_option=='SHOW_DATA') {
+         // Check for labels and append them if they exist
+         $comment_metadata = '';
+         $comment_metadata_text = get_comment_meta( get_comment_ID(), 'placespeak_geo_labels',true);
+         if($comment_metadata_text==true&&$comment_metadata_text!=='None'&&$comment_metadata_text!=='') {
+            $comment_metadata = '<br><br><strong>PlaceSpeak verified area</strong>: ' . $comment_metadata_text;
+         } elseif($comment_metadata_text==true) {
+            $comment_metadata = '<br><br><strong>PlaceSpeak verified area</strong>: Not inside this consultation area.';
+         }
+         return $comment . $comment_metadata;
+     } else {
+         // No option selected, just give comment as usual
+         return $comment;
+     }
+         
+}
+add_filter('comment_text', 'ps_add_area_metadata', 1000);
 
 /**
  * SINGLE SIGN ON
@@ -841,7 +861,7 @@ function add_placespeak_single_sign_on() {
         
         ?>
         <p style="text-align:center;">
-            <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $single_sign_on_app->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo $single_sign_on_app->redirect_uri ?>/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $single_sign_on_app->id; ?>">
+            <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $single_sign_on_app->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $single_sign_on_app->id; ?>">
                 <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
             </a>    
         </p>

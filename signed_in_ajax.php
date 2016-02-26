@@ -65,7 +65,13 @@ if($user_id) {
     if($user_storage == 'PS_USERS') {
         global $wpdb;
         $table_name = $wpdb->prefix . 'placespeak_users';
-        $user_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE user_id = " . $user_id);
+        $query_array = [$user_id];
+        $user_info = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM " . $table_name . " WHERE user_id = %d",
+                $query_array
+            )
+        );
         if($user_info) {
             // Check to see which index number this app is for this user, and get specific geo_labels (stored in DB as arrays separated by vertical bars)
             $authorized_client_keys = explode(',',get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
