@@ -615,14 +615,14 @@ function ps_select_placespeak_app() {
 function ps_placespeak_scripts() {
     wp_register_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'));
     wp_register_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('jquery','leaflet-js'));
-    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.20');
+    wp_register_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.21');
 
     wp_enqueue_style( 'leaflet-css', plugin_dir_url(__FILE__) . 'css/leaflet.css' );
     wp_enqueue_style( 'placespeak-css', plugin_dir_url(__FILE__) . 'css/placespeak.css' );
 
     wp_enqueue_script( 'leaflet-js', plugin_dir_url(__FILE__) . 'js/leaflet.js', array('jquery'),'0.7.7',false);
     wp_enqueue_script( 'polyline-encoded-js', plugin_dir_url(__FILE__) . 'js/polyline.encoded.js', array('leaflet-js'),'0.13',false);
-    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.20',true);
+    wp_enqueue_script( 'placespeak-js', plugin_dir_url(__FILE__) . 'js/placespeak.js', array('jquery','leaflet-js','polyline-encoded-js'),'1.0.21',true);
 }
 
 add_action( 'wp_enqueue_scripts', 'ps_placespeak_scripts' );

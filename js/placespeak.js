@@ -43,7 +43,8 @@ $.ajax({
                 $('#placespeak_connect_button').hide();
                 // Loading Leaflet
                 var map = L.map('placespeak_plugin_map', { zoomControl:false }).setView([51.505, -0.09], 13);
-                L.tileLayer('http://api.tiles.mapbox.com/v4/victorplacespeak.cig2i6les1d5kt4kx6sveyeyu/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoidmljdG9ycGxhY2VzcGVhayIsImEiOiJjaWcyaTZteG8xZGl1dTNtNHEzZjdiazlqIn0.KUYzQqUkEAhAaqi0LPMSpQ', {
+                
+                L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicGxhY2VzcGVhayIsImEiOiJjaWw0YnJvdTIzeDY3dXlrczY3YmRlMGU3In0.X9KRXYQzCQMVIhYqrI4RaQ', {
                     //attribution: 'Imagery from <a href="http://mapbox.com/about/maps/">MapBox</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                     subdomains: 'abcd',
                     maxZoom: 19
