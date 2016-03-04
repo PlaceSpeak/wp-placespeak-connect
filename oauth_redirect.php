@@ -31,10 +31,16 @@ require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php
  */
 global $wpdb;
 $table_name = $wpdb->prefix . 'placespeak';
-$client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $app_id);
+$query_array = [$app_id];
+$client_info = $wpdb->get_row(
+    $wpdb->prepare(
+        "SELECT * FROM " . $table_name . " WHERE id = %d",
+        $query_array
+    )
+);
 $client_id = $client_info->client_key;
 $client_secret = $client_info->client_secret;
-$redirect_uri = $client_info->redirect_uri . '/wp-content/plugins/wp-placespeak-connect/oauth_redirect.php';
+$redirect_uri = plugin_dir_url(__FILE__) . 'oauth_redirect.php';
 
 /**
  * If request has returned a code, then send the authorization request with cURL
