@@ -15,7 +15,7 @@ This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com 
 
 Note that if you have previously installed an earlier version of the plugin you must first deactivate and delete it from your WordPress dashboard before installing the new version. Your data will not be lost, despite the warning you will see.
 
-* Click the "Download ZIP" button on this page to [download the files](/archive/master.zip).
+* Click the "Download ZIP" button on this page to [download the files](https://github.com/PlaceSpeak/wp-placespeak-connect/archive/master.zip).
 * Unzip the resulting wp-placespeak-connect-master.zip file.
 * A folder will be created called `wp-placespeak-connect-master`. Rename it to just `wp-placespeak-connect`, then zip up that renamed folder.
 * In your WordPress dashboard, click on the `Plugins` tab on the left nav bar, then `Add New`, then `Upload Plugin`, then `Choose File`.
