@@ -53,7 +53,15 @@ $.ajax({
                 var polygons = [];
                 // GeoJSON formatting
                 var thisGeoJSON = JSON.parse(placespeak_data[0].geojson_polygons);
-                var thisGeoJSONLayer = L.geoJson(thisGeoJSON).addTo(map);
+                var thisGeoJSONLayer = L.geoJson(thisGeoJSON, {
+                    style: {        
+                        fillColor: '#9CCBCF',     
+                        color: "#000",        
+                        weight: 0.1,      
+                        opacity: 0.7,     
+                        fillOpacity: 0.7      
+                   }
+                }).addTo(map);
                 // Going over green dots and adding them
                 var markers = []
                 var greenDotIcon = L.icon({
