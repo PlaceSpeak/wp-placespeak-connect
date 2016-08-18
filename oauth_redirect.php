@@ -21,9 +21,10 @@ $old_url = substr($state,0,$index_position);
 
 /**
  * Load WP functions
- * 
+ * (Should we be doing this? http://ottopress.com/2010/dont-include-wp-load-please/)
  */
-require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
+$parse_uri = explode( 'wp-content', $_SERVER['SCRIPT_FILENAME'] );
+require_once( $parse_uri[0] . 'wp-load.php' );
 
 /**
  * Get relevant app information out of DB
