@@ -1,6 +1,6 @@
 # WP-PlaceSpeak-Connect
 
-**Version: 1.1.1**
+**Version: 1.1.2**
 
 This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com to use geoverification tools in their WordPress installation.
 
