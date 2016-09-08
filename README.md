@@ -24,9 +24,9 @@ Note that if you have previously installed an earlier version of the plugin you 
 * Click `Activate Plugin`.
 * Within the `Settings` tab of the WordPress dashboard, look for the `PlaceSpeak` sub-tab, and add your first API connection.
 
-## Release notes for 1.1.1
+## Release notes for 1.1.2
 
-* Bug fix for "Failed opening required ... wp-load.php" error on some servers.
+* Attempted bug fix for "Failed opening required ... wp-load.php" error on Windows Server.
 
 ### Future features under consideration
 

@@ -21,14 +21,13 @@ $old_url = substr($state,0,$index_position);
 
 /**
  * Load WP functions
- * (Should we be doing this? http://ottopress.com/2010/dont-include-wp-load-please/)
+ * (Should we be doing this at all? http://ottopress.com/2010/dont-include-wp-load-please/)
  */
-$parse_uri = explode( 'wp-content', $_SERVER['SCRIPT_FILENAME'] );
-require_once( $parse_uri[0] . 'wp-load.php' );
+require_once( dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php' );
 
 /**
  * Get relevant app information out of DB
- * 
+ *
  */
 global $wpdb;
 $table_name = $wpdb->prefix . 'placespeak';
@@ -45,13 +44,13 @@ $redirect_uri = plugin_dir_url(__FILE__) . 'oauth_redirect.php';
 
 /**
  * If request has returned a code, then send the authorization request with cURL
- * 
+ *
  */
 if(isset($_GET["code"])){
     $code = $_GET["code"];
     $url = 'https://www.placespeak.com/connect/token/';
     $myvars = 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&redirect_uri=' . $redirect_uri . '&code=' . $code . '&grant_type=authorization_code';
-    
+
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, 1);
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
@@ -62,10 +61,10 @@ if(isset($_GET["code"])){
     $response = curl_exec( $ch );
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
-      if($httpcode==200) { 
+
+      if($httpcode==200) {
         $response_json = json_decode($response);
-    
+
         /**
          * If first auth request is successful, then do another with the access_token
          * After success, put information into appropriate DB depending on what user has selected in Options page
@@ -79,13 +78,13 @@ if(isset($_GET["code"])){
         $response2 = curl_exec( $ch2 );
         $httpcode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
         curl_close($ch2);
-        
-        if($httpcode2==200) { 
+
+        if($httpcode2==200) {
           $response_json2 = json_decode($response2);
-            
+
         /**
          * Removing any extra formatting (arrays, etc) to get information into DB in consistent manner
-         * 
+         *
          */
           $fixed_verifications = str_replace('True','"True"',str_replace('False','"False"',str_replace("'",'"',$response_json2->{'verifications'})));
           $user_id               = $response_json2->{'id'};
@@ -96,12 +95,12 @@ if(isset($_GET["code"])){
           $access_token          = $response_json->{'access_token'};
           $refresh_token         = $response_json->{'refresh_token'};
           $authorized_client_key = $client_info->client_key;
-        
+
           $user_storage = get_option('placespeak_user_storage');
-        
+
         /**
          * If they have selected WP_USERS, then store as Wordpress users
-         * 
+         *
          */
           if($user_storage == 'WP_USERS') {
               $user_name = $user_id . '_placespeak';
@@ -113,7 +112,7 @@ if(isset($_GET["code"])){
                 $refresh_tokens = explode(",", get_user_meta($wordpress_user_id,'placespeak_refresh_token', true));
                 $client_keys = explode(",", get_user_meta($wordpress_user_id,'placespeak_authorized_client_key', true));
                 $this_key_exists = false;
-                  
+
                 foreach($client_keys as $key=>$single_client_key) {
                     // Check if this client key exists and what index it's at
                     if($single_client_key == $authorized_client_key) {
@@ -139,7 +138,7 @@ if(isset($_GET["code"])){
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                     $new_client_keys = implode(",",$client_keys);
                 }
-                  
+
                 update_user_meta( $wordpress_user_id, 'placespeak_user_id', $user_id);
                 update_user_meta( $wordpress_user_id, 'placespeak_first_name', $first_name);
                 update_user_meta( $wordpress_user_id, 'placespeak_last_name', $last_name);
@@ -148,10 +147,10 @@ if(isset($_GET["code"])){
                 update_user_meta( $wordpress_user_id, 'placespeak_access_token', $new_access_tokens);
                 update_user_meta( $wordpress_user_id, 'placespeak_refresh_token', $new_refresh_tokens);
                 update_user_meta( $wordpress_user_id, 'placespeak_authorized_client_key', $new_client_keys);
-                  
+
                 /**
                  * Sign in to WP after authenticating app
-                 * 
+                 *
                  */
                 /*
                 $single_sign_on = get_option('placespeak_single_sign_on');
@@ -173,7 +172,7 @@ if(isset($_GET["code"])){
                     'last_name' => $last_name
                 );
                 $wordpress_user_id = wp_insert_user( $userdata ) ;
-                  
+
                 add_user_meta( $wordpress_user_id, 'placespeak_user_id', $user_id);
                 add_user_meta( $wordpress_user_id, 'placespeak_first_name', $first_name);
                 add_user_meta( $wordpress_user_id, 'placespeak_last_name', $last_name);
@@ -182,10 +181,10 @@ if(isset($_GET["code"])){
                 add_user_meta( $wordpress_user_id, 'placespeak_access_token', $access_token);
                 add_user_meta( $wordpress_user_id, 'placespeak_refresh_token', $refresh_token);
                 add_user_meta( $wordpress_user_id, 'placespeak_authorized_client_key', $authorized_client_key);
-                  
+
                 /**
                  * Sign in to WP after authenticating app
-                 * 
+                 *
                  */
                 /*
                 $single_sign_on = get_option('placespeak_single_sign_on');
@@ -197,16 +196,16 @@ if(isset($_GET["code"])){
                 } */
               }
           }
-            
+
         /**
          * If they have selected placespeak_users, then store in that table (no login option available)
-         * 
+         *
          */
           if($user_storage == 'PS_USERS') {
             global $wpdb;
 
             $table_name = $wpdb->prefix . 'placespeak_users';
-              
+
             $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE user_id = " . $user_id);
             if($client_info) {
                 // User exists - update fields
@@ -240,21 +239,21 @@ if(isset($_GET["code"])){
                     $new_refresh_tokens = implode(",",$refresh_tokens);
                     $new_client_keys = implode(",",$client_keys);
                 }
-                
-                $wpdb->update( 
-                    $table_name, 
-                    array( 
-                        'time' => current_time( 'mysql' ), 
-                        'first_name' => $first_name, 
-                        'last_name' => $last_name, 
-                        'geo_labels' => $new_geo_labels, 
-                        'verifications' => $verifications, 
-                        'access_token' => $new_access_tokens, 
-                        'refresh_token' => $new_refresh_tokens, 
+
+                $wpdb->update(
+                    $table_name,
+                    array(
+                        'time' => current_time( 'mysql' ),
+                        'first_name' => $first_name,
+                        'last_name' => $last_name,
+                        'geo_labels' => $new_geo_labels,
+                        'verifications' => $verifications,
+                        'access_token' => $new_access_tokens,
+                        'refresh_token' => $new_refresh_tokens,
                         'authorized_client_key' => $new_client_keys
                     ),
                     array( 'user_id' => $user_id ),
-                    array( 
+                    array(
                         '%s',
                         '%s',
                         '%s',
@@ -268,35 +267,35 @@ if(isset($_GET["code"])){
                 );
             } else {
                 // If no user exists, create new one
-                $wpdb->insert( 
-                    $table_name, 
-                    array( 
-                        'time' => current_time( 'mysql' ), 
-                        'user_id' => $user_id, 
-                        'first_name' => $first_name, 
-                        'last_name' => $last_name, 
-                        'geo_labels' => $geo_labels, 
-                        'verifications' => $verifications, 
-                        'access_token' => $access_token, 
-                        'refresh_token' => $refresh_token, 
+                $wpdb->insert(
+                    $table_name,
+                    array(
+                        'time' => current_time( 'mysql' ),
+                        'user_id' => $user_id,
+                        'first_name' => $first_name,
+                        'last_name' => $last_name,
+                        'geo_labels' => $geo_labels,
+                        'verifications' => $verifications,
+                        'access_token' => $access_token,
+                        'refresh_token' => $refresh_token,
                         'authorized_client_key' => $authorized_client_key
-                    ) 
+                    )
                 );
             }
           }
-            
+
         /**
          * After user stuff, send them back to whatever page the state variable tells us
-         * 
+         *
          */
           $url =  "//{$_SERVER['HTTP_HOST']}";
           echo '<meta http-equiv="REFRESH" content="0; url=' . $url . $old_url . '">';
           exit();
-            
+
         } else {
         /**
          * If an error occurs on the second authorization request
-         * 
+         *
          */
           $response_json2 = json_decode($response2);
           echo 'Second request did not come back correctly.<br>';
@@ -304,10 +303,10 @@ if(isset($_GET["code"])){
           echo '<br>Error Description: ' . $response_json2->{'error_description'};
         }
       } else {
-          
+
         /**
          * If an error occurs on the first authorization request
-         * 
+         *
          */
           $response_json = json_decode($response);
           echo 'First request did not come back correctly.<br>';
@@ -317,7 +316,7 @@ if(isset($_GET["code"])){
 } else {
     /**
      * If there is an error with the query strings
-     * 
+     *
      */
       echo 'Initial query strings have an error.<br>';
       echo 'Error: ' . $_GET["error"];
