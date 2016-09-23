@@ -60,6 +60,8 @@ if(isset($_GET["code"])){
 
     $response = curl_exec( $ch );
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    
     curl_close($ch);
 
       if($httpcode==200) {
@@ -310,8 +312,10 @@ if(isset($_GET["code"])){
          */
           $response_json = json_decode($response);
           echo 'First request did not come back correctly.<br>';
-          echo 'Error: ' . $response_json->{'error'};
-          echo '<br>Error Description: ' . $response_json->{'error_description'};
+          echo 'HTTP Status: ' . $httpcode . '<br>';
+          echo 'Error: ' . $response_json->{'error'} . '<br>';
+          echo 'Error Description: ' . $response_json->{'error_description'} . '<br>';
+          echo 'cURL error (if any): ' . $curl_error . '<br>';
       }
 } else {
     /**
