@@ -1,12 +1,12 @@
 # WP-PlaceSpeak-Connect
 
-**Version: 1.1.2**
+**Version: 1.1.3**
 
 This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com to use geoverification tools in their WordPress installation.
 
 ### Requirements
 
-Your domain must use [HTTPS](https://en.wikipedia.org/wiki/HTTPS) in order for the plugin to work. Communication with the PlaceSpeak server uses the [OAuth2](https://en.wikipedia.org/wiki/OAuth) authorization protocol, and OAuth2 requires that network communication happen over encrypted HTTPS (which is just a good idea anyway).
+Your domain must use [HTTPS](https://en.wikipedia.org/wiki/HTTPS) in order for the plugin to work. Communication with the PlaceSpeak server happens according to the [OAuth2](https://en.wikipedia.org/wiki/OAuth) authorization protocol, and OAuth2 requires that network communication happen over encrypted HTTPS (which is just a good idea anyway).
 
 ### Features
 
@@ -28,11 +28,11 @@ Note that if you have previously installed an earlier version of the plugin you 
 * Click `Activate Plugin`.
 * Within the `Settings` tab of the WordPress dashboard, look for the `PlaceSpeak` sub-tab, and add your first API connection.
 
-## Release notes for 1.1.2
+## Release notes for 1.1.3
 
-* Attempted bug fix for "Failed opening required ... wp-load.php" error on Windows Server.
+* More useful error message when server to server communication fails.
 
 ### Future features under consideration
 
 * Single Sign On with PlaceSpeak account into WordPress
-* App creation from Wordpress (instead of going to PlaceSpeak to create them)
+* Automatic listing of all available PlaceSpeak Connect API apps for your organization (instead of entering them manually).
