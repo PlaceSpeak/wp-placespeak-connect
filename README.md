@@ -4,12 +4,16 @@
 
 This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com to use geoverification tools in their WordPress installation.
 
+### Requirements
+
+Your domain must use [HTTPS](https://en.wikipedia.org/wiki/HTTPS) in order for the plugin to work. Communication with the PlaceSpeak server uses the [OAuth2](https://en.wikipedia.org/wiki/OAuth) authorization protocol, and OAuth2 requires that network communication happen over encrypted HTTPS (which is just a good idea anyway).
+
 ### Features
 
 * Admin can add apps using app key, app secret, and a standard redirect_uri
 * "Connect With PlaceSpeak" button available as shortcode or as part of a commenting form
 * Commenters that authorize PlaceSpeak will also have verification information, names, and region labels relative to app saved as meta information with comment
-* Allows admin to store user information in WP_USERS table or custom placespeak_user table
+* Allows admin to store user information in `WP_USERS` table or custom `placespeak_user` table
 
 ### Installation
 
