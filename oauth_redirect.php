@@ -9,6 +9,8 @@
  * @package    wp-placespeak-connect
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * First, get the path and app information from the query string
  * The index number of the app is appended on the end of the state variable, needs to be parsed out

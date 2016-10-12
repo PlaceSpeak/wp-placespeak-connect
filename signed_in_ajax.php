@@ -9,6 +9,8 @@
  * @package    wp-placespeak-connect
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * First, get the user_id and the app_key from the query string
  * 
