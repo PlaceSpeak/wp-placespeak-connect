@@ -1,6 +1,6 @@
 # WP-PlaceSpeak-Connect
 
-**Version: 1.1.3**
+**Version: 1.1.4**
 
 This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com to use geoverification tools in their WordPress installation.
 
@@ -28,11 +28,26 @@ Note that if you have previously installed an earlier version of the plugin you 
 * Click `Activate Plugin`.
 * Within the `Settings` tab of the WordPress dashboard, look for the `PlaceSpeak` sub-tab, and add your first API connection.
 
-## Release notes for 1.1.3
+### Version history 
+
+1.1.4
+
+* Prevents access to PHP files via the browser.
+
+1.1.3
 
 * More useful error message when server to server communication fails.
 
+1.1.2
+
+* Another bug fix for "Failed opening required ... wp-load.php" error on Windows Server.
+
+1.1.1
+
+* Bug fix for "Failed opening required ... wp-load.php" error on some servers.
+
 ### Future features under consideration
 
+* Submission to the Wordpress Plugin Directory.
 * Single Sign On with PlaceSpeak account into WordPress
 * Automatic listing of all available PlaceSpeak Connect API apps for your organization (instead of entering them manually).
