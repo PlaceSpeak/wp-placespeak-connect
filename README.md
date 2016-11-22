@@ -28,6 +28,32 @@ Note that if you have previously installed an earlier version of the plugin you 
 * Click `Activate Plugin`.
 * Within the `Settings` tab of the WordPress dashboard, look for the `PlaceSpeak` sub-tab, and add your first API connection.
 
+### Usage
+
+* If you don't have one, create a new (free) user account on PlaceSpeak.com.
+* If you don't have one, create a new (free) organization account on PlaceSpeak.com. (Currently this requires clicking on the *Start a Consultation* link and following through to the organization creation step.
+* In your organizational dashboard, click on the *PlaceSpeak Connect* tab, and create a new API client instance (better documentation for this step to come).
+* In your Wordpress admin interface, go to *Settings* > *PlaceSpeak*
+* Copy the *Redirect URL* from the top of the page. Back in PlaceSpeak, paste the URL into the *Redirect URI* field in the settings page for your new API app, and press save.
+* Copy and paste the app key and app secret from PlaceSpeak into the *Add New PlaceSpeak App* form in Wordpress. Also give the app a name (presumably the same one you used when creating it in PlaceSpeak).
+
+#### Option one: shortcodes.
+
+* Copy the shortcode from the *Basic shortcode embed* section, i.e. *[placespeak_connect id="APP_ID"]*.
+* Create a new post or page.
+* In the content box, paste in the short code.
+* Modify it to point to the correct app, and optionally, pick a colour for the button. E.g. *[placespeak_connect id="1" button="dark_blue"]*.
+* Save your post and view it. There should now be a button for verifying PlaceSpeak users who comment on your page/post.
+
+#### Option two: using Contact Form 7 forms
+
+* Install the [Contact Form 7](https://wordpress.org/plugins/contact-form-7/) plugin.
+* Create a new page or post.
+* From the *Select PlaceSpeak App* dropdown in the editor, choose the app you just added.
+* Save your post and view it. There should now be a button for verifying PlaceSpeak users who fill out the form.
+
+This option currently only works with [Contact Form 7](https://wordpress.org/plugins/contact-form-7/) Let us know if there are other form plugins it should support.
+
 ### Version history 
 
 1.1.4
