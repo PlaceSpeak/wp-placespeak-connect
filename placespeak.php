@@ -835,10 +835,16 @@ add_filter('comment_text', 'ps_add_area_metadata', 1000);
 add_action( 'init', 'ps_init' );
 // Main initialization, with core loaded up.
 function ps_init() {
-	// OAuth redirect handler
-	if ( !empty( $_GET['placespeak_oauth'] ) && $_GET['placespeak_oauth'] == 'redirect' ) {
-		require dirname( __FILE__ ) . '/oauth_redirect.php';
-		exit;
+	// OAuth redirect and verify handlers
+	if ( !empty( $_GET['placespeak_oauth'] ) ) {
+		switch ( $_GET['placespeak_oauth'] ) {
+			case 'redirect':
+				require dirname( __FILE__ ) . '/oauth_redirect.php';
+				exit;
+			case 'check':
+				require dirname( __FILE__ ) . '/signed_in_ajax.php';
+				exit;
+		}
 	}
 }
 

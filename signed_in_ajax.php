@@ -24,11 +24,6 @@ $app_key = htmlspecialchars($_GET["app_key"]);
  */
 if($user_id) {
     /**
-     * Load WP functions
-     *
-     */
-    require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
-    /**
      * Depending on user storage option, get user information out of DB
      * Returned to JS as jsonp
      */

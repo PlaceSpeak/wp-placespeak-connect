@@ -26,7 +26,7 @@ $.ajax({
     } else {
         // If successful at being logged in, do another AJAX call to get out specific user information
         $.ajax({
-          url: plugin_directory + 'signed_in_ajax.php?user_id=' + placespeak_data[0].user_id + '&app_key='+app_key,
+          url: '/?placespeak_oauth=check&user_id=' + placespeak_data[0].user_id + '&app_key='+app_key,
           dataType: 'jsonp',
         }).done(function(data) {
             if(data.error) {
