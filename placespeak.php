@@ -104,7 +104,11 @@ register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
 function ps_choose_placespeak_user_table() {
 	if ( isset( $_POST['choose-placespeak-user-table'] ) ) {
        $user_storage = $_POST['user_storage'];
-        
+
+	   check_admin_referer( 'placespeak-settings' ); // CSRF protection
+	   if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+
        if($user_storage == 'WP_USERS') {
            update_option( 'placespeak_user_storage', 'WP_USERS');
        }
@@ -136,15 +140,17 @@ function ps_choose_placespeak_user_table() {
        }
     }
 }
-ps_choose_placespeak_user_table();
 
 function ps_choose_commenter_metadata() {
 	if ( isset( $_POST['choose-commenter-metadata'] ) ) {
+		check_admin_referer( 'placespeak-settings' ); // CSRF protection
+		if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+
        $commenter_metadata = $_POST['commenter_metadata'];
        update_option( 'placespeak_commenter_metadata', $commenter_metadata);
     }
 }
-ps_choose_commenter_metadata();
 
 /**
  * Checkbox for turning single sign-on on and off. Disabled for now.
@@ -253,6 +259,7 @@ function ps_plugin_options() {
         <h3>Options</h3>
         <p><strong>User Storage</strong></p>
         <form action="" method="post">
+			<?php wp_nonce_field( 'placespeak-settings' ); ?>
             <input type="radio" name="user_storage" <?php if($user_storage == 'WP_USERS') echo "checked"; ?> value="WP_USERS" />Use default WP_USERS to store verified user information (<strong>default</strong>).
             <br>
             <input type="radio" name="user_storage" <?php if($user_storage == 'PS_USERS') echo "checked"; ?> value="PS_USERS" />Use custom PlaceSpeak user table to store verified user information.
@@ -261,6 +268,7 @@ function ps_plugin_options() {
         </form>
         <p><strong>Show commenter metadata</strong></p>
         <form action="" method="post">
+			<?php wp_nonce_field( 'placespeak-settings' ); ?>
             <input type="radio" name="commenter_metadata" <?php if($commenter_metadata == 'SHOW_DATA') echo "checked"; ?> value="SHOW_DATA" />Show data on the front end (<strong>default</strong>).
             <br>
             <input type="radio" name="commenter_metadata" <?php if($commenter_metadata == 'HIDE_DATA') echo "checked"; ?> value="HIDE_DATA" />Show only to admins in the back end.
@@ -276,6 +284,7 @@ function ps_plugin_options() {
         </form> -->
         <h3>Add New PlaceSpeak App</h3>
         <form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ) ?>" method="post">
+			<?php wp_nonce_field( 'placespeak-settings' ); ?>
             <table>
                 <tr><td>App Name</td><td><input type="text" name="app-name" placeholder="App name"></td></tr>
                 <tr><td>App Key</td><td><input type="text" name="app-key" placeholder="App Key"></td></tr>
@@ -318,6 +327,7 @@ function ps_plugin_options() {
                                         <span class="inline">
                                             <a style="cursor:pointer;" class="editinline" id="editapp-<?php echo $client_info[$i]->id ?>" title="Edit this item inline">Edit</a>
                                             <form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ) ?>" method="post" style="display:inline;">
+												<?php wp_nonce_field( 'placespeak-settings' ); ?>
                                                 <input id="app-id" name="app-id" type="hidden" value="<?php echo $client_info[$i]->id ?>"> 
                                                 <?php if($client_info[$i]->archived!=='1') { ?>
                                                     <input type="submit" class="submitLink" name="archive-app" value="Archive">
@@ -340,6 +350,7 @@ function ps_plugin_options() {
                         id="edit-<?php echo $client_info[$i]->id ?>" style="">
                             <td class="colspanchange" colspan="4">
                                 <form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ) ?>" method="post">
+									<?php wp_nonce_field( 'placespeak-settings' ); ?>
                                     <fieldset class="inline-edit-col-left">
                                         <div class="inline-edit-col">
                                             <h4>Edit</h4>
@@ -432,6 +443,11 @@ function ps_add_new_app() {
 
 	// if the submit button is clicked, send the email
 	if ( isset( $_POST['add-new-app'] ) ) {
+		
+		check_admin_referer( 'placespeak-settings' ); // CSRF protection
+		if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'placespeak';
@@ -452,7 +468,6 @@ function ps_add_new_app() {
         );
     }
 }
-ps_add_new_app();
 
 /**
  * Updating an app from PlaceSpeak Options page
@@ -461,6 +476,9 @@ ps_add_new_app();
 function ps_update_app() {
 
 	if ( isset( $_POST['update-app'] ) ) {
+		check_admin_referer( 'placespeak-settings' ); // CSRF protection
+		if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
 		// sanitize form values
 		$app_id          = $_POST["app-id"];
@@ -490,7 +508,6 @@ function ps_update_app() {
         );
 	}
 }
-ps_update_app();
 
 /**
  * Archiving an app from PlaceSpeak Options page
@@ -499,6 +516,9 @@ ps_update_app();
 function ps_archive_app() {
 
 	if ( isset( $_POST['archive-app'] ) ) {
+		check_admin_referer( 'placespeak-settings' ); // CSRF protection
+		if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
 		$app_id          = $_POST["app-id"];
         
@@ -520,7 +540,6 @@ function ps_archive_app() {
         );
 	}
 }
-ps_archive_app();
 
 /**
  * Unarchiving an app from PlaceSpeak Options page
@@ -529,6 +548,9 @@ ps_archive_app();
 function ps_unarchive_app() {
 
 	if ( isset( $_POST['unarchive-app'] ) ) {
+		check_admin_referer( 'placespeak-settings' ); // CSRF protection
+		if ( !current_user_can( 'manage_options' ) ) // Access control
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
 		$app_id          = $_POST["app-id"];
         
@@ -550,7 +572,6 @@ function ps_unarchive_app() {
         );
 	}
 }
-ps_unarchive_app();
 
 /**
  * Selection of app on post edit with a dropdown inside a metabox
@@ -845,6 +866,16 @@ function ps_init() {
 				require dirname( __FILE__ ) . '/signed_in_ajax.php';
 				exit;
 		}
+	}
+
+	// Some possible admin actions
+	if ( is_admin() ) { // No point in even trying otherwise
+		ps_choose_placespeak_user_table();
+		ps_choose_commenter_metadata();
+		ps_add_new_app();
+		ps_update_app();
+		ps_archive_app();
+		ps_unarchive_app();
 	}
 }
 
