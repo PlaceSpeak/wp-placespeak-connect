@@ -249,7 +249,7 @@ function ps_plugin_options() {
     
 	<div class="wrap">
         <h3>Instructions</h3>
-        <p>Redirect URL: <strong><?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php</strong></p>
+        <p>Redirect URL: <strong><?php echo esc_attr( add_query_arg( array( 'placespeak_oauth' => 'redirect' ), site_url( '/' ) ) ); ?></strong></p>
         <h3>Options</h3>
         <p><strong>User Storage</strong></p>
         <form action="" method="post">
@@ -650,7 +650,7 @@ function ps_placespeak_connect_shortcode($atts) {
     <div style="font-size:12px !important;">
         <div id="placespeak_connect_button">
             <div style="margin-bottom:10px;">
-                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                <a href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo esc_attr( urlencode( add_query_arg( array( 'placespeak_oauth' => 'redirect' ), site_url( '/' ) ) ) ); ?>&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_<?php echo $shortcode_connect_atts['button']; ?>.png">
                 </a>
             </div>
@@ -700,7 +700,7 @@ function ps_placespeak_connect_field() {
         <div style="font-size:12px !important;margin-bottom:20px;">
             <div id="placespeak_connect_button">
                 <div style="margin-bottom:10px;">
-                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo plugin_dir_url(__FILE__); ?>oauth_redirect.php&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
+                    <a onclick="return saveFormToLocalStorage();" href="https://placespeak.com/connect/authorize/?client_id=<?php echo $client_info->client_key ?>&response_type=code&scope=user_info&redirect_uri=<?php echo esc_attr( urlencode( add_query_arg( array( 'placespeak_oauth' => 'redirect' ), site_url( '/' ) ) ) ); ?>&state=<?php echo $escaped_url; ?>_<?php echo $client_info->id; ?>">
                         <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/connect_dark_blue.png">
                     </a>
                     <div id="pre_verified_by_placespeak" style="display:none;">
@@ -831,6 +831,16 @@ function ps_add_area_metadata($comment) {
          
 }
 add_filter('comment_text', 'ps_add_area_metadata', 1000);
+
+add_action( 'init', 'ps_init' );
+// Main initialization, with core loaded up.
+function ps_init() {
+	// OAuth redirect handler
+	if ( !empty( $_GET['placespeak_oauth'] ) && $_GET['placespeak_oauth'] == 'redirect' ) {
+		require dirname( __FILE__ ) . '/oauth_redirect.php';
+		exit;
+	}
+}
 
 /**
  * SINGLE SIGN ON

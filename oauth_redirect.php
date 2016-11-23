@@ -22,12 +22,6 @@ $app_id = str_replace('_', '', strrchr($state, '_'));
 $old_url = substr($state, 0, $index_position);
 
 /**
- * Load WP functions
- * (Should we be doing this at all? http://ottopress.com/2010/dont-include-wp-load-please/)
- */
-require_once(dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . 'wp-load.php');
-
-/**
  * Get relevant app information out of DB
  *
  */
@@ -42,7 +36,7 @@ $client_info = $wpdb->get_row(
 );
 $client_id = $client_info->client_key;
 $client_secret = $client_info->client_secret;
-$redirect_uri = plugin_dir_url(__FILE__) . 'oauth_redirect.php';
+$redirect_uri = add_query_arg( array( 'placespeak_oauth' => 'redirect' ), site_url( '/' ) );
 
 /**
  * If request has returned a code, then send the authorization request with cURL
