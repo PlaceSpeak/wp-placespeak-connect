@@ -655,7 +655,7 @@ function ps_placespeak_connect_shortcode($atts) {
                 </a>
             </div>
         </div>
-        <input id="app_key" type="hidden" value="<?php echo $client_info[wp_kses_post($shortcode_connect_atts['id'])-1]->client_key ?>">
+        <input id="app_key" type="hidden" value="<?php echo $client_info->client_key ?>">
         <input id="url_directory" type="hidden" value="<?php echo plugin_dir_url(__FILE__) ?>">
         <div id="verified_by_placespeak" style="display:none;">
             <p>Your comment is verified by PlaceSpeak.<img id="placespeak_verified_question" src="<?php echo plugin_dir_url(__FILE__); ?>/img/question.png"</p>
