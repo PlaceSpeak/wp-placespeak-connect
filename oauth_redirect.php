@@ -45,7 +45,7 @@ $redirect_uri = add_query_arg( array( 'placespeak_oauth' => 'redirect' ), site_u
 if (isset($_GET["code"])) {
     $code = $_GET["code"];
     $url = 'https://www.placespeak.com/connect/token/';
-    $myvars = 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&redirect_uri=' . $redirect_uri . '&code=' . $code . '&grant_type=authorization_code';
+    $myvars = 'client_id=' . urlencode( $client_id ) . '&client_secret=' . urlencode( $client_secret ) . '&redirect_uri=' . urlencode( $redirect_uri ) . '&code=' . urlencode( $code ). '&grant_type=authorization_code';
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_POST, 1);
@@ -287,7 +287,7 @@ if (isset($_GET["code"])) {
              *
              */
             $url = "//{$_SERVER['HTTP_HOST']}";
-            echo '<meta http-equiv="REFRESH" content="0; url=' . $url . $old_url . '">';
+            echo '<meta http-equiv="REFRESH" content="0; url=' . esc_url( $url . $old_url ) . '">';
             exit();
 
         } else {
@@ -297,8 +297,8 @@ if (isset($_GET["code"])) {
              */
             $response_json2 = json_decode($response2);
             echo 'Second request did not come back correctly.<br>';
-            echo 'Error: ' . $response_json2->{'error'};
-            echo '<br>Error Description: ' . $response_json2->{'error_description'};
+            echo 'Error: ' . esc_html( $response_json2->{'error'} );
+            echo '<br>Error Description: ' . esc_html( $response_json2->{'error_description'} );
         }
     } else {
 
@@ -308,10 +308,10 @@ if (isset($_GET["code"])) {
          */
         $response_json = json_decode($response);
         echo 'First request did not come back correctly.<br>';
-        echo 'HTTP status: ' . $httpcode . '<br>';
-        echo 'API error: ' . $response_json->{'error'} . '<br>';
-        echo 'API error description: ' . $response_json->{'error_description'} . '<br>';
-        echo 'cURL error: ' . $curl_error . '<br>';
+        echo 'HTTP status: ' . esc_html( $httpcode ) . '<br>';
+        echo 'API error: ' . esc_html( $response_json->{'error'} ) . '<br>';
+        echo 'API error description: ' . esc_html( $response_json->{'error_description'} ) . '<br>';
+        echo 'cURL error: ' . esc_html( $curl_error ) . '<br>';
     }
 } else {
     /**
@@ -319,7 +319,7 @@ if (isset($_GET["code"])) {
      *
      */
     echo 'Initial query strings have an error.<br>';
-    echo 'Error: ' . $_GET["error"];
-    echo '<br>Error Description: ' . $_GET["error_description"];
+    echo 'Error: ' . esc_html( $_GET["error"] );
+    echo '<br>Error Description: ' . esc_html( $_GET["error_description"] );
 }
 ?>
