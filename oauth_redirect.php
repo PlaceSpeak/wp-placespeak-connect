@@ -204,7 +204,7 @@ if (isset($_GET["code"])) {
 
                 $table_name = $wpdb->prefix . 'placespeak_users';
 
-                $client_info = $wpdb->get_results("SELECT * FROM " . $table_name . " WHERE user_id = " . $user_id);
+                $client_info = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM " . $table_name . " WHERE user_id = %d", $user_id ) );
                 if ($client_info) {
                     // User exists - update fields
                     $existing_geo_labels = explode("|", $client_info['geo_labels']);

@@ -567,7 +567,7 @@ function ps_select_placespeak_app() {
     $post_id = intval( $_GET['post'] );
     $current_app_id = get_post_meta( $post_id, 'placespeak_app_id', true);
     if($current_app_id) {
-        $current_app = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
+        $current_app = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $table_name . " WHERE id = %d;", $current_app_id ) );
     }
     function my_callback($post,$metabox) {
         if($metabox['args']['current_app_id']) { ?>
@@ -641,7 +641,7 @@ function ps_placespeak_connect_shortcode($atts) {
 
 	$table_name = $wpdb->prefix . 'placespeak';
     
-    $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
+    $client_info = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $table_name . " WHERE id = %d;", $current_app_id ) );
 
     $url = $_SERVER['REQUEST_URI'];
     $escaped_url = htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' );
@@ -691,7 +691,7 @@ function ps_placespeak_connect_field() {
 
         $table_name = $wpdb->prefix . 'placespeak';
 
-        $client_info = $wpdb->get_row("SELECT * FROM " . $table_name . " WHERE id = " . $current_app_id);
+        $client_info = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $table_name . " WHERE id = %d;", $current_app_id ) );
         
         $url = $_SERVER['REQUEST_URI'];
         $escaped_url = htmlspecialchars( $url, ENT_QUOTES, 'UTF-8' );
