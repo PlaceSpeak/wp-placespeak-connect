@@ -17,7 +17,7 @@ Your domain must use [HTTPS](https://en.wikipedia.org/wiki/HTTPS) in order for t
 
 ### Installation
 
-#### Option two: from the WordPress Plugin Directory.
+#### Option one: from the WordPress Plugin Directory.
 
 TBD pending acceptance in the directory.
 
