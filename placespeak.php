@@ -15,7 +15,7 @@
  * Plugin Name:       WP PlaceSpeak Connect
  * Plugin URI:        https://placespeak.com
  * Description:       This plugin allows organizations with PlaceSpeak Connect accounts on Placespeak.com to use geoverification tools on their Wordpress pages.
- * Version:           1.1.2
+ * Version:           1.2
  * Author:            PlaceSpeak
  * Author URI:        https://placespeak.com
  * License:           GPL-2.0+
