@@ -24,11 +24,6 @@ $app_key = htmlspecialchars($_GET["app_key"]);
  */
 if($user_id) {
     /**
-     * Load WP functions
-     *
-     */
-    require_once( dirname(dirname(dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php' );
-    /**
      * Depending on user storage option, get user information out of DB
      * Returned to JS as jsonp
      */
@@ -53,7 +48,7 @@ if($user_id) {
             'verifications'=>get_user_meta($wordpress_user_id,'placespeak_verifications', true),
             'geo_labels'=>$these_geo_labels
         );
-        echo $_GET['callback'] . '('.json_encode($data).')';
+        echo esc_html( $_GET['callback'] ) . '('.json_encode($data).')';
       } else {
         /**
          * If user doesn't exist
@@ -91,7 +86,7 @@ if($user_id) {
                 'verifications'=>$user_info[0]->verifications,
                 'geo_labels'=>$these_geo_labels
             );
-            echo $_GET['callback'] . '('.json_encode($data).')';
+            echo esc_html( $_GET['callback'] ) . '('.json_encode($data).')';
         } else {
             
             /**

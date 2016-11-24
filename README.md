@@ -1,6 +1,6 @@
 # WP-PlaceSpeak-Connect
 
-**Version: 1.1.4**
+**Version: 1.2**
 
 This plugin allows organizations with PlaceSpeak Connect apps on placespeak.com to use geoverification tools in their WordPress installation.
 
@@ -16,6 +16,18 @@ Your domain must use [HTTPS](https://en.wikipedia.org/wiki/HTTPS) in order for t
 * Allows admin to store user information in `WP_USERS` table or custom `placespeak_user` table
 
 ### Installation
+
+#### Option two: from the WordPress Plugin Directory.
+
+TBD pending acceptance in the directory.
+
+<!---
+* In your WordPress dashboard, go to *Plugins* > *Add New*
+* In the search bar, enter "PlaceSpeak".
+* When the plugin is found, click "Install Now".
+--->
+
+#### Option two: from Github.
 
 Note that if you have previously installed an earlier version of the plugin you must first deactivate and delete it from your WordPress dashboard before installing the new version. Your data will not be lost, despite the warning you will see.
 
@@ -56,6 +68,10 @@ This option currently only works with [Contact Form 7](https://wordpress.org/plu
 
 ### Version history 
 
+1.2
+
+* Multiple internal improvements to adhere to WordPress plugin directory standards.
+
 1.1.4
 
 * Prevents access to PHP files via the browser.
@@ -74,6 +90,5 @@ This option currently only works with [Contact Form 7](https://wordpress.org/plu
 
 ### Future features under consideration
 
-* Submission to the Wordpress Plugin Directory.
 * Single Sign On with PlaceSpeak account into WordPress
 * Automatic listing of all available PlaceSpeak Connect API apps for your organization (instead of entering them manually).
