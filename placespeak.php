@@ -103,7 +103,7 @@ register_activation_hook( __FILE__, 'ps_placespeak_install_data' );
  */
 function ps_choose_placespeak_user_table() {
 	if ( isset( $_POST['choose-placespeak-user-table'] ) ) {
-       $user_storage = $_POST['user_storage'];
+       $user_storage = sanitize_text_field( $_POST['user_storage'] );
 
 	   check_admin_referer( 'placespeak-settings' ); // CSRF protection
 	   if ( !current_user_can( 'manage_options' ) ) // Access control
@@ -147,7 +147,7 @@ function ps_choose_commenter_metadata() {
 		if ( !current_user_can( 'manage_options' ) ) // Access control
 			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
-       $commenter_metadata = $_POST['commenter_metadata'];
+       $commenter_metadata = sanitize_text_field( $_POST['commenter_metadata'] );
        update_option( 'placespeak_commenter_metadata', $commenter_metadata);
     }
 }
@@ -481,7 +481,7 @@ function ps_update_app() {
 			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
 		// sanitize form values
-		$app_id          = $_POST["app-id"];
+		$app_id          = intval( $_POST["app-id"] );
 		$app_name        = sanitize_text_field( $_POST["app-name"] );
 		$client_key      = sanitize_text_field( $_POST["app-key"] );
 		$client_secret   = sanitize_text_field( $_POST["app-secret"] );
@@ -520,7 +520,7 @@ function ps_archive_app() {
 		if ( !current_user_can( 'manage_options' ) ) // Access control
 			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
-		$app_id          = $_POST["app-id"];
+		$app_id          = intval( $_POST["app-id"] );
         
         global $wpdb;
 
@@ -552,7 +552,7 @@ function ps_unarchive_app() {
 		if ( !current_user_can( 'manage_options' ) ) // Access control
 			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
-		$app_id          = $_POST["app-id"];
+		$app_id          = intval( $_POST["app-id"] );
         
         global $wpdb;
 
@@ -771,10 +771,10 @@ add_action( 'comment_post', 'ps_save_user_comment_information' );
 function ps_save_user_comment_information($comment_id) {
     // If it has this input field, then it's been verified
     if($_POST['placespeak_verifications']) {
-        add_comment_meta( $comment_id, 'placespeak_verified_user', $_POST['placespeak_user_id'] );
-        add_comment_meta( $comment_id, 'placespeak_user_name', $_POST['placespeak_user_name'] );
-        add_comment_meta( $comment_id, 'placespeak_user_verifications', $_POST['placespeak_verifications'] );
-        add_comment_meta( $comment_id, 'placespeak_geo_labels', $_POST['placespeak_geo_labels'] );
+        add_comment_meta( $comment_id, 'placespeak_verified_user', sanitize_text_field( $_POST['placespeak_user_id'] ) );
+        add_comment_meta( $comment_id, 'placespeak_user_name', sanitize_text_field( _POST['placespeak_user_name'] ) );
+        add_comment_meta( $comment_id, 'placespeak_user_verifications', sanitize_text_field( $_POST['placespeak_verifications'] ) );
+        add_comment_meta( $comment_id, 'placespeak_geo_labels', sanitize_text_field( $_POST['placespeak_geo_labels'] ) );
             
     }
 }
